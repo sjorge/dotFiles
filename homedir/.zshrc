@@ -1,58 +1,5 @@
 ## .zshrc
 # by Jorge Schrauwen <jorge@blackdot.be>
-# Version 20160621001
-#         YYYYMMDD###
-
-# How to install
-# curl -sk "https://docu.blackdot.be/getRaw.php?onlyCode=true&id=configuration:zsh" -o ~/.zshrc 
-#
-# Change Log
-# - 20160621: --- - optimizations
-# - 20160621: fix - if .aliases is missing initial exit indicator was fasle
-# - 20160320: fix - color ls on SmartOS, drop obd support
-# - 20160219: fix - fix vncviewer alias
-# - 20151128: --- - cleanup and removal of old code
-# - 20151001: fix - support new pkgsrc layout on OSX
-# - 20141225: new - added 'developer' theme (same as dual but with git helpers)
-# - 20141225: new - switched to promptinit, converted themes and renamed minimal
-# - 20141225: new - added CMD_SAFE_WRAP (defaults to 1)
-# - 20141225: --- - switch to selective nocorrect/noglob
-# - 20141225: new - enable dirstack, enable auto rehash, extra MacOSX helpers
-# - 20141225: --- - set NOFANCY_PROMPT to disable UTF-8 prompt
-# - 20141225: fix - broken dual and gentoo-server themes
-# - 20141225: --- - reworked flow
-# - 20141225: new - NZSHRC override via .zopts
-# - 20141225: new - local option override (.zopts)
-# - 20141225: fix - updated automatic update function
-# - 20141223: new - disabled beep
-# - 20141223: fix - disabled homedir autocomplete
-# - 20141008: new - SmartOS support LX brand /native
-# - 20141003: new - OpenBSD pkg_add helper
-# - 20141002: --- - Solaris re-order PATH/MANPATH
-# - 20141002: --- - avoid double sourcing, .zprofile -> .zlocal
-# - 20140820: fix - MacOSX Yosemite ctr+r works
-# - 20140727: fix - Solaris zshenable works
-# - 20140727: fix - don't butcher EDITOR
-# - 20140726: new - SmartOS zone support
-# - 20140629: new - MacOSX pkgsrc on OSX (http://saveosx.org)
-# - 20140421: new - OpenBSD color ls
-# - 20131013: new - Solaris zfs compatible rsync alias
-# - 20131010: --- - path cleanup
-# - 20131009: new - Solaris path tweaks + colorls
-# - 20130730: fix - OmniOS manpages
-# - 20130716: fix - Solaris sbin handling
-# - 20130629: new - OmniOS obd repository support
-# - 20130625: fix - OmniOS fixed broken isaexec
-# - 20130621: fix - OmniOS add sbin only when staff
-# - 20130520: new - OmniOS support
-# - 20120823: new - automatic update
-# - 20120821: new - disable UTF-8 check-mark with .znofancy
-
-# {{{ updater
-    NZSHRC="https://docu.blackdot.be/getRaw.php?onlyCode=true&id=configuration:zsh"
-    CHECK_UPDATE=1
-    AUTO_UPDATE=1
-# }}}
 
 # {{{ options
     ## change directory 
@@ -128,9 +75,7 @@
     bindkey "\e[2~" quoted-insert # Ins
     bindkey "\e[3~" delete-char # Del
     bindkey "\e[5C" forward-word
-    bindkey "\eOc" emacs-forward-word
     bindkey "\e[5D" backward-word
-    bindkey "\eOd" emacs-backward-word
     bindkey "\e\e[C" forward-word
     bindkey "\e\e[D" backward-word
     bindkey "\e[Z" reverse-menu-complete # Shift+Tab
@@ -151,55 +96,6 @@
 # }}}
 
 # {{{ functions
-    # update .zshrc
-    zshupdate() { 
-        # main
-        if [ -z "`which curl`" ]; then
-            echo 'Please install curl!'
-            exit
-        fi
-        NV=`curl -sk ${NZSHRC} | head -n3 | tail -n1 | awk '{ print $3 }'`
-        OV=`cat ~/.zshrc | head -n3 | tail -n1 | awk '{ print $3 }'`
-        [ -z "${NV}" ] && NV=0
-        
-        if [ ${NV} -gt ${OV} ]; then
-            echo -n "[>>] Updating from ${OV} to ${NV} ...\r"
-            mv ~/.zshrc ~/.zshrc.old
-            curl -sk ${NZSHRC} -o ~/.zshrc
-            source ~/.zshrc
-            echo '[OK]'
-        else
-            echo "[OK] No update needed."
-        fi
-    }
-
-    # auto update check
-    if [ ${CHECK_UPDATE} -gt 0 ]; then
-        if [ `find ~/.zshrc -mmin +1440` ]; then
-            touch ~/.zshrc
-            NV=`curl -sk -m 3 ${NZSHRC} | head -n3 | tail -n1 | awk '{ print $3 }'`
-            OV=`cat ~/.zshrc | head -n3 | tail -n1 | awk '{ print $3 }'`
-            [ -z "${NV}" ] && NV=0
-        
-            if [ ${NV} -gt ${OV} ]; then
-                if [ ${AUTO_UPDATE} -gt 0 ]; then
-                    zshupdate
-                else
-                    echo "Please run zshupdate to update .zshrc to version ${NV}!"
-                fi
-            fi
-        fi
-    fi
-
-    # remove ssh known_hosts key
-    delete_sshhost() {
-        if [[ -z "$1" ]] ; then
-            echo "usage: \e[1;36mdelete_sshhost \e[1;0m< host >"
-            echo "       Removes the specified host from ssh known host list"
-        else
-            sed -i -e "/$1/d" $HOME/.ssh/known_hosts
-        fi
-    }
     
     # zshenable helper
     zshenable() {
@@ -365,6 +261,7 @@
         fi
   
         # pkgsrc
+        ##FIXME: use new auto wrapper
         if [ -e /opt/pkg/bin/pkgin ]; then
             export PATH=/opt/pkg/gnu/bin:/opt/pkg/bin:/opt/pkg/sbin:$PATH
             export MANPATH=/opt/pkg/man:$MANPATH
@@ -399,6 +296,7 @@
     ;; esac
 
     ## host specific
+    ## FIXME: move me to somewhere else
     case ${HOST:r} in
         (axion*|tachyon*|photon*)
             # proper UTF-8
@@ -549,6 +447,7 @@
         smmsp svctag upnp unknown webservd www-data xfs xvm zfssnap '_*'
         
     ## hostname completion
+    ## FIXME: is this still wanted?
     if [ ! -f ~/.ssh/config ]; then
         [ -f ~/.ssh/known_hosts ] && rm ~/.ssh/known_hosts
         mkdir -p ~/.ssh
@@ -606,6 +505,7 @@
 # }}}
 
 # {{{ prompt
+    ## FIXME: move to somewhere else
     ## enable colors and prompt module
     autoload -U colors && colors
     autoload -Uz promptinit && promptinit
