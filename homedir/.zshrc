@@ -27,10 +27,18 @@ DIRSTACKSIZE=20
 ## dynamically set environment variables
 mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/envvars/"
 for fn_var in "${ZDOTDIR:-${HOME}}"/.zshrc.d/envvars/*; do
-  var="$(echo ${fn_var} | awk -F '/' '{print $NF}')"
-  val="$(cat "${fn_var}")"
-  [[ "${var}" == "README" ]] && continue
-  eval "${var}=\"${val}\"; export ${var}"
+  [[ ! -f "${fn_var}" ]] || [[ "${fn_var}" =~ '\/README$' ]] && continue
+  v_name="$(echo ${fn_var} | awk -F '/' '{print $NF}')"
+  v_value="$(cat "${fn_var}")"
+
+  # filter
+  if [[ "${v_name}" =~ "^.*:.*:.*$" ]]; then
+    [[ "${v_name}" =~ "^os:.*:*"   ]] && [[ ! "${OSTYPE}" =~ "^$(echo ${v_name} | awk -F ':' '{ print $2 }')" ]] && continue
+    [[ "${v_name}" =~ "^host.:*:*" ]] && [[ ! "${HOST:r}" =~ "^$(echo ${v_name} | awk -F ':' '{ print $2 }')" ]] && continue
+    v_name="$(echo ${v_name} | awk -F ':' '{ print $NF }')"
+  fi
+
+  eval "${v_name}=\"${v_value}\"; export ${v_name}"
 done
 
 
@@ -38,9 +46,9 @@ done
 ## dynamically (un)set options
 mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
 for fn_opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
+  [[ ! -f "${fn_opt}" ]] || [[ "${fn_opt}" =~ '\/README$' ]] && continue
   opt=$(echo ${fn_opt} | awk -F '/' '{print tolower($NF)}')
   case "${opt}" in
-    readme)                ;;
     no_*)   unset ${opt:3} ;;
     *)      setopt ${opt}  ;;
   esac
@@ -62,9 +70,38 @@ bindkey "\e[Z" reverse-menu-complete # Shift+Tab
 ## dynamically load extra functions/cmdlets
 mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets/"
 for fn_cmd in "${ZDOTDIR:-${HOME}}"/.zshrc.d/cmdlets/*; do
+  [ ! -f "${fn_opt}" ] || [[ "${fn_opt}" =~ '\/README$' ]] && continue
   cmd="$(echo ${fn_cmd} | awk -F '/' '{print $NF}')"
-  [[ "${cmd}" == "README" ]] && continue
   eval "${cmd}() { source "${fn_cmd}"; ${cmd} \$@ }"
+done
+
+
+### aliases
+## clear aliases
+unalias -a
+
+## include local aliases
+[[ -e ~/.aliases ]] && source ~/.aliases || true
+
+## dynamically load extra aliases
+mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/aliases/"
+for fn_alias in "${ZDOTDIR:-${HOME}}"/.zshrc.d/aliases/*; do
+  [[ ! -f "${fn_alias}" ]] || [[ "${fn_alias}" =~ '\/README$' ]] && continue
+  a_name="$(echo ${fn_alias} | awk -F '/' '{print $NF}')"
+  a_value="$(cat "${fn_alias}")"
+
+  # filter
+  if [[ "${a_name}" =~ "^.*:.*:.*$" ]]; then
+    [[ "${a_name}" =~ "^os:.*:*"   ]] && [[ ! "${OSTYPE}" =~ "^$(echo ${a_name} | awk -F ':' '{ print $2 }')" ]] && continue
+    [[ "${a_name}" =~ "^host.:*:*" ]] && [[ ! "${HOST:r}" =~ "^$(echo ${a_name} | awk -F ':' '{ print $2 }')" ]] && continue
+    a_name="$(echo ${a_name} | awk -F ':' '{ print $NF }')"
+  fi
+
+  if [[ "${a_value}" != "" ]]; then
+    alias "${a_name}"="${a_value}"
+  else
+    unalias -m ${a_name}
+  fi
 done
 
 
@@ -496,22 +533,6 @@ done
     [[ -z $THEME ]] && THEME=compact
     prompt $THEME
     unset THEME
-# }}}
-
-# {{{ aliases
-    # nano wrapping
-    which nano &> /dev/null ; [ $? -eq 0 ] && alias nano='nano -w'
-
-    # default for ls
-    alias ll="${aliases[ls]:-ls} -l"
-
-    case $OSTYPE in solaris*)
-        alias zfs_rsync='rsync -aviAPh'
-        alias zfs_rsync+='rsync -aviAPh --delete'
-    ;; esac
-
-    # include local aliases
-    [[ -e ~/.aliases ]] && source ~/.aliases || true
 # }}}
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
