@@ -1,60 +1,18 @@
-## .zshrc
-# by Jorge Schrauwen <jorge@blackdot.be>
+#### .zshrc
+## Jorge Schrauwen <jorge@blackdot.be>
+####
 
-# {{{ options
-  ## auto change directory
-  # NOTE: automatically call cd if the command cannot be excuted
-  #       and the command matches a directory name. 
-  setopt auto_cd
-
-  ## on cd push directory to stack
-  setopt auto_pushd
-  setopt pushd_ignore_dups
-    
-  ## enable command correction
-  setopt correct
-  setopt hash_list_all
-  #unsetopt hash_dirs
-
-  ## prevent file overwrite
-  # NOTE: force >! or >| for overwriting files
-  unsetopt clobber
-
-  ## allow comments event in interactive shell
-  setopt interactive_comments 
-
-  ## superglobs
-  setopt case_glob
-
-  ## expand more after equals (=)
-  setopt magic_equal_subst
-    
-  ## expansions performed in prompt
-  setopt prompt_subst
-
-  ## prompt about background jobs on exit
-  setopt check_jobs
-
-  ## notify on job complete
-  setopt notify
-    
-  ## disable beep
-  unsetopt beep
-    
-  ## append / to all dirs from file generation
-  setopt mark_dirs
-
-  ## dynamically (un)set options
-  mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
-  for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
-    opt=$(echo ${opt} | awk -F '/' '{print tolower($NF)}')
-    [[ "${opt}" == "readme" ]] && \
-      continue
-    [[ "${opt:0:3}" == "no_" ]] && \
-      unsetopt ${opt:3}         || \
-      setopt ${opt}
-  done
-# }}}
+### options
+## dynamically (un)set options
+mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
+for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
+  opt=$(echo ${opt} | awk -F '/' '{print tolower($NF)}')
+  case "${opt}" in
+    readme)                ;;
+    no_*)   unset ${opt:3} ;;
+    *)      setopt ${opt}  ;;
+  esac
+done
 
 # {{{ history
     # history file

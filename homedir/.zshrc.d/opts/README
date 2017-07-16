@@ -1,3 +1,5 @@
-#### zsh additional options ####
-## NOTE: for each file name the corrosponding option is set,
-#        to unset prepend it with no_
+#### zsh options
+## For each file in this directory the option
+##  with the name of that file will be set.
+## Options can be unset by prepending no_ to
+##  the name.
