@@ -37,8 +37,8 @@ done
 ### options
 ## dynamically (un)set options
 mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
-for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
-  opt=$(echo ${opt} | awk -F '/' '{print tolower($NF)}')
+for fn_opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
+  opt=$(echo ${fn_opt} | awk -F '/' '{print tolower($NF)}')
   case "${opt}" in
     readme)                ;;
     no_*)   unset ${opt:3} ;;
@@ -57,38 +57,16 @@ bindkey " " magic-space # becasue I am lazy
 ## generic tweaks
 bindkey "\e[Z" reverse-menu-complete # Shift+Tab
 
-# {{{ functions
-    ## FIXME: autoload?
-    # zshenable helper
-    zshenable() {
-        case $OSTYPE in 
-            linux*|darwin*|openbsd*)
-                chsh -s $(which zsh)
-            ;;
-            solaris*)
-                pfexec /usr/sbin/usermod -s $(which zsh) $(id -n -u)
-            ;;
-            *)
-                echo "No zshenable implemented for $OSTYPE."
-            ;;
-        esac
-    }
-    
-    # zshdisable helper
-    zshdisable() {
-        case $OSTYPE in 
-            linux*|darwin*|openbsd*)
-                chsh -s $(which bash)
-            ;;
-            solaris*)
-                pfexec /usr/sbin/usermod -s $(which bash) $(id -n -u)
-            ;;
-            *)
-                echo "No zshdisable implemented for $OSTYPE."
-            ;;
-        esac
-    }
-# }}}
+
+### cmdlets
+## dynamically load extra functions/cmdlets
+mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets/"
+for fn_cmd in "${ZDOTDIR:-${HOME}}"/.zshrc.d/cmdlets/*; do
+  cmd="$(echo ${fn_cmd} | awk -F '/' '{print $NF}')"
+  [[ "${cmd}" == "README" ]] && continue
+  eval "${cmd}() { source "${fn_cmd}"; ${cmd} \$@ }"
+done
+
 
 # {{{ advanced
     ## cleanup aliases

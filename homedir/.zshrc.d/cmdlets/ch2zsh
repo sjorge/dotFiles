@@ -1,0 +1,13 @@
+#### cmdlet for switching to zsh as your default shell
+## NOTE: This is handy for setting zsh as your default shell,
+##       it will try to do the right thing depending on the
+##       operating system in use.
+ch2zsh() {
+  case $OSTYPE in
+    linux*|darwin*|openbsd*) chsh -s $(which zsh)                                 ;;
+    solaris*)                pfexec /usr/sbin/usermod -s $(which zsh) $(id -n -u) ;;
+    *)                       echo "No zshenable implemented for $OSTYPE."         ;;
+  esac
+}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
