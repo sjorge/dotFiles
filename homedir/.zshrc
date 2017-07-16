@@ -2,45 +2,58 @@
 # by Jorge Schrauwen <jorge@blackdot.be>
 
 # {{{ options
-    ## change directory 
-    setopt auto_cd
+  ## auto change directory
+  # NOTE: automatically call cd if the command cannot be excuted
+  #       and the command matches a directory name. 
+  setopt auto_cd
+
+  ## on cd push directory to stack
+  setopt auto_pushd
+  setopt pushd_ignore_dups
     
-    ## enable command correction
-    setopt correct
-    #setopt correct_all  
+  ## enable command correction
+  setopt correct
+  setopt hash_list_all
+  #unsetopt hash_dirs
 
-    ## prevent file overwrite
-    setopt no_clobber
+  ## prevent file overwrite
+  # NOTE: force >! or >| for overwriting files
+  unsetopt clobber
 
-    ## pound sign in interactive prompt
-    setopt interactive_comments 
+  ## allow comments event in interactive shell
+  setopt interactive_comments 
 
-    ## superglobs
-    unsetopt case_glob
+  ## superglobs
+  setopt case_glob
+
+  ## expand more after equals (=)
+  setopt magic_equal_subst
     
-    ## expansions performed in prompt
-    setopt prompt_subst
-    setopt magic_equal_subst
+  ## expansions performed in prompt
+  setopt prompt_subst
 
-    ## prompt about background jobs on exit
-    setopt check_jobs
+  ## prompt about background jobs on exit
+  setopt check_jobs
 
-    ## notify on job complete
-    setopt notify
+  ## notify on job complete
+  setopt notify
     
-    ## disable beep
-    unsetopt beep
-    setopt no_beep
+  ## disable beep
+  unsetopt beep
     
-    ## automatic rehash
-    setopt nohashdirs
-    
-    ## make some commands safer
-    CMD_SAFE_WRAP=0
-    setopt mark_dirs
+  ## append / to all dirs from file generation
+  setopt mark_dirs
 
-    ## include local options
-    [[ -e ~/.zopts ]] && source ~/.zopts
+  ## dynamically (un)set options
+  mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
+  for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
+    opt=$(echo ${opt} | awk -F '/' '{print tolower($NF)}')
+    [[ "${opt}" == "readme" ]] && \
+      continue
+    [[ "${opt:0:3}" == "no_" ]] && \
+      unsetopt ${opt:3}         || \
+      setopt ${opt}
+  done
 # }}}
 
 # {{{ history
@@ -495,17 +508,18 @@
 # }}}
 
 # {{{ safe command wrap
-    if [ ${CMD_SAFE_WRAP} -gt 0 ]; then
-        alias rm="${aliases[rm]:-rm} -i"
-        alias mv="${aliases[mv]:-mv} -i"
-        alias cp="${aliases[cp]:-cp} -i"
-        alias ln="${aliases[ln]:-ln} -i"
-        alias mkdir="${aliases[mkdir]:-mkdir} -p"
-    fi
+    #if [ ${CMD_SAFE_WRAP} -gt 0 ]; then
+    #    alias rm="${aliases[rm]:-rm} -i"
+    #    alias mv="${aliases[mv]:-mv} -i"
+    #    alias cp="${aliases[cp]:-cp} -i"
+    #    alias ln="${aliases[ln]:-ln} -i"
+    #    alias mkdir="${aliases[mkdir]:-mkdir} -p"
+    #fi
 # }}}
 
 # {{{ prompt
     ## FIXME: move to somewhere else
+    ## drop some old ones and add newish ones inspired by https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes
     ## enable colors and prompt module
     autoload -U colors && colors
     autoload -Uz promptinit && promptinit
@@ -590,3 +604,5 @@
     # include local aliases
     [[ -e ~/.aliases ]] && source ~/.aliases || true
 # }}}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

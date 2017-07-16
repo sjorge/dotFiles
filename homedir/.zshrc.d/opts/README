@@ -1,0 +1,3 @@
+#### zsh additional options ####
+## NOTE: for each file name the corrosponding option is set,
+#        to unset prepend it with no_
