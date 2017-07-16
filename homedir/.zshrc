@@ -19,8 +19,20 @@ setopt hist_ignore_dups
 ## skip if command starts with a space
 setopt hist_ignore_space
 
+
 ### variables
+## keep a directory stack
 DIRSTACKSIZE=20
+
+## dynamically set environment variables
+mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/envvars/"
+for fn_var in "${ZDOTDIR:-${HOME}}"/.zshrc.d/envvars/*; do
+  var="$(echo ${fn_var} | awk -F '/' '{print $NF}')"
+  val="$(cat "${fn_var}")"
+  [[ "${var}" == "README" ]] && continue
+  eval "${var}=\"${val}\"; export ${var}"
+done
+
 
 ### options
 ## dynamically (un)set options
@@ -34,8 +46,9 @@ for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
   esac
 done
 
+
 ### keybindings
-## enable vi mode
+## enable vi-mode
 bindkey -v
 bindkey -M viins "^r" history-incremental-search-backward
 bindkey -M vicmd "^r" history-incremental-search-backward
@@ -45,7 +58,7 @@ bindkey " " magic-space # becasue I am lazy
 bindkey "\e[Z" reverse-menu-complete # Shift+Tab
 
 # {{{ functions
-    
+    ## FIXME: autoload?
     # zshenable helper
     zshenable() {
         case $OSTYPE in 
@@ -443,16 +456,6 @@ bindkey "\e[Z" reverse-menu-complete # Shift+Tab
     alias ssh='noglob ssh'
 # }}}
 
-# {{{ safe command wrap
-    #if [ ${CMD_SAFE_WRAP} -gt 0 ]; then
-    #    alias rm="${aliases[rm]:-rm} -i"
-    #    alias mv="${aliases[mv]:-mv} -i"
-    #    alias cp="${aliases[cp]:-cp} -i"
-    #    alias ln="${aliases[ln]:-ln} -i"
-    #    alias mkdir="${aliases[mkdir]:-mkdir} -p"
-    #fi
-# }}}
-
 # {{{ prompt
     ## FIXME: move to somewhere else
     ## drop some old ones and add newish ones inspired by https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes
@@ -515,14 +518,6 @@ bindkey "\e[Z" reverse-menu-complete # Shift+Tab
     [[ -z $THEME ]] && THEME=compact
     prompt $THEME
     unset THEME
-# }}}
-
-# {{{ variables
-    # preferences
-    which nano &> /dev/null ; [ $? -eq 0 ] && export EDITOR='nano'
-    which vi &> /dev/null ; [ $? -eq 0 ] && export EDITOR='vi'
-    which vim &> /dev/null ; [ $? -eq 0 ] && export EDITOR='vim'
-    export PAGER='less'
 # }}}
 
 # {{{ aliases
