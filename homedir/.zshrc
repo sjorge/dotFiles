@@ -2,6 +2,23 @@
 ## Jorge Schrauwen <jorge@blackdot.be>
 ####
 
+### history
+## history file and size
+HISTFILE=~/.zhistory
+HISTSIZE=5000
+SAVEHIST=2500
+
+## share history between all session
+setopt share_history
+setopt hist_fcntl_lock
+setopt inc_append_history
+
+## only store once for repeat commands
+setopt hist_ignore_dups
+
+## skip if command starts with a space
+setopt hist_ignore_space
+
 ### options
 ## dynamically (un)set options
 mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
@@ -13,23 +30,6 @@ for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
     *)      setopt ${opt}  ;;
   esac
 done
-
-# {{{ history
-    # history file
-    HISTFILE=~/.zhistory
-    HISTSIZE=10000
-    SAVEHIST=10000
-
-    # share history file
-    setopt share_history
-    setopt inc_append_history
-
-    # ignore duplicates
-    setopt hist_ignore_all_dups
-    
-    # ignore entries starting with a space
-    setopt hist_ignore_space
-# }}}
 
 # {{{ dirstack
     DIRSTACKSIZE=20
