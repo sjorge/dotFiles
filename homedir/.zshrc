@@ -19,6 +19,9 @@ setopt hist_ignore_dups
 ## skip if command starts with a space
 setopt hist_ignore_space
 
+### variables
+DIRSTACKSIZE=20
+
 ### options
 ## dynamically (un)set options
 mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
@@ -30,12 +33,6 @@ for opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
     *)      setopt ${opt}  ;;
   esac
 done
-
-# {{{ dirstack
-    DIRSTACKSIZE=20
-    setopt autopushd pushdsilent pushdtohome pushdminus
-    setopt pushdignoredups # ignore dups
-# }}}
 
 # {{{ keybindings
     # generic
