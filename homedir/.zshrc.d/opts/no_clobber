@@ -1,2 +1,0 @@
-#### prevent file overwrite with > and >>
-## Files can still be overwritten with >! or >|

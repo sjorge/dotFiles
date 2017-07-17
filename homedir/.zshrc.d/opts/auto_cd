@@ -1,4 +1,0 @@
-#### automatically change directory
-## when a command is not found but a directory
-##  matching the name of the command exists
-##  change into that directory.

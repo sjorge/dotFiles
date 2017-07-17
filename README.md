@@ -19,4 +19,5 @@ My personal dotFiles repository, somethings will be encrypted.
 - [ ] write sync script
 
 ## Handy resources
+- http://zsh.sourceforge.net/Doc/Release/Options.html
 - http://zsh.sourceforge.net/Doc/Release/Expansion.html#Parameter-Expansion-Flags
