@@ -8,7 +8,9 @@
 ## -----------------------------------------------------------------------------
 ## For every file present in this directory a correspoding
 ##  environment variable is exported. The value of the envvar
-##  is the content of the file.
+##  is the first line of the file, unless the execute bit is set.
+## If the execute bit is set the file is executed as a script and the output is
+##  assigned to the environment variable.
 ##
 ## .zshrc.d/opts/
 ## -----------------------------------------------------------------------------
@@ -25,7 +27,9 @@
 ## .zshrc.d/aliases/ (filtered)
 ## -----------------------------------------------------------------------------
 ## For every file present an alias is created, the value of the
-##  alias is the content of the file.
+##  alias is first line of the file, unless the execute bit is set.
+## If the execute bit is set the file is executed as a script and the output is
+##  assigned to the alias.
 ##
 ## Filtering
 ## -----------------------------------------------------------------------------

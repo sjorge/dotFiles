@@ -2,6 +2,39 @@
 ## Jorge Schrauwen <jorge@blackdot.be>
 ####
 
+### helpers
+typeset -A dynload_data
+function dynload() {
+  local s_dir=${@[1]}
+  local b_read=${@[2]:-1}
+  dynload_data=()
+
+  [[ ! -d "${s_dir}/" ]] && return
+
+  for fn_entry in "${s_dir}"/*; do
+    e_name="${${(s#/#)fn_entry}[-1]}"
+    if [[ "${e_name}" =~ "^.*:.*:.*$" ]]; then  # detect filter
+      e_name=(${(s#:#)e_name})
+      case "${e_name[1]}" in
+        host) [[ ! "${HOST:r}" =~ "^${e_name[2]}" ]] && continue ;;
+        os)   [[ ! "${OSTYPE}" =~ "^${e_name[2]}" ]] && continue ;;
+        *)                                              continue ;;
+      esac
+      e_name="${e_name[-1]}"
+    fi
+    if [ "${b_read}" -gt 0 ]; then # read content if requested
+      [ -x "${fn_entry}" ] && \
+        e_value="$("${fn_entry}")"     || \
+        e_value="$(head -n 1 "${fn_entry}")"
+    else
+      e_value=
+    fi
+
+    dynload_data[${e_name}]="${e_value}"
+  done
+}
+
+
 ### history
 ## history file and size
 HISTFILE=~/.zhistory
@@ -25,29 +58,16 @@ setopt hist_ignore_space
 DIRSTACKSIZE=20
 
 ## dynamically set environment variables
-mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/envvars/"
-for fn_var in "${ZDOTDIR:-${HOME}}"/.zshrc.d/envvars/*; do
-  [[ ! -f "${fn_var}" ]] || [[ "${fn_var}" =~ '\/README$' ]] && continue
-  v_name="$(echo ${fn_var} | awk -F '/' '{print $NF}')"
-  v_value="$(cat "${fn_var}")"
-
-  # filter
-  if [[ "${v_name}" =~ "^.*:.*:.*$" ]]; then
-    [[ "${v_name}" =~ "^os:.*:*"   ]] && [[ ! "${OSTYPE}" =~ "^$(echo ${v_name} | awk -F ':' '{ print $2 }')" ]] && continue
-    [[ "${v_name}" =~ "^host.:*:*" ]] && [[ ! "${HOST:r}" =~ "^$(echo ${v_name} | awk -F ':' '{ print $2 }')" ]] && continue
-    v_name="$(echo ${v_name} | awk -F ':' '{ print $NF }')"
-  fi
-
-  eval "${v_name}=\"${v_value}\"; export ${v_name}"
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/envvars"
+for envvar in ${(@k)dynload_data}; do
+  eval "${envvar}=\"${dynload_data[$envvar]}\"; export ${envvar}"
 done
 
 
 ### options
 ## dynamically (un)set options
-mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/opts/"
-for fn_opt in "${ZDOTDIR:-${HOME}}"/.zshrc.d/opts/*; do
-  [[ ! -f "${fn_opt}" ]] || [[ "${fn_opt}" =~ '\/README$' ]] && continue
-  opt=$(echo ${fn_opt} | awk -F '/' '{print tolower($NF)}')
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/opts" 0
+for opt in ${(@k)dynload_data}; do
   case "${opt}" in
     no_*)   unset ${opt:3} ;;
     *)      setopt ${opt}  ;;
@@ -68,11 +88,9 @@ bindkey "\e[Z" reverse-menu-complete # Shift+Tab
 
 ### cmdlets
 ## dynamically load extra functions/cmdlets
-mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets/"
-for fn_cmd in "${ZDOTDIR:-${HOME}}"/.zshrc.d/cmdlets/*; do
-  [ ! -f "${fn_opt}" ] || [[ "${fn_opt}" =~ '\/README$' ]] && continue
-  cmd="$(echo ${fn_cmd} | awk -F '/' '{print $NF}')"
-  eval "${cmd}() { source "${fn_cmd}"; ${cmd} \$@ }"
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 0
+for cmd in ${(@k)dynload_data}; do
+  eval "${cmd}() { source "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets/${cmd}"; ${cmd} \$@ }"
 done
 
 
@@ -84,27 +102,20 @@ unalias -a
 [[ -e ~/.aliases ]] && source ~/.aliases || true
 
 ## dynamically load extra aliases
-mkdir -p "${ZDOTDIR:-${HOME}}/.zshrc.d/aliases/"
-for fn_alias in "${ZDOTDIR:-${HOME}}"/.zshrc.d/aliases/*; do
-  [[ ! -f "${fn_alias}" ]] || [[ "${fn_alias}" =~ '\/README$' ]] && continue
-  a_name="$(echo ${fn_alias} | awk -F '/' '{print $NF}')"
-  a_value="$(cat "${fn_alias}")"
-
-  # filter
-  if [[ "${a_name}" =~ "^.*:.*:.*$" ]]; then
-    [[ "${a_name}" =~ "^os:.*:*"   ]] && [[ ! "${OSTYPE}" =~ "^$(echo ${a_name} | awk -F ':' '{ print $2 }')" ]] && continue
-    [[ "${a_name}" =~ "^host.:*:*" ]] && [[ ! "${HOST:r}" =~ "^$(echo ${a_name} | awk -F ':' '{ print $2 }')" ]] && continue
-    a_name="$(echo ${a_name} | awk -F ':' '{ print $NF }')"
-  fi
-
-  if [[ "${a_value}" != "" ]]; then
-    alias "${a_name}"="${a_value}"
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/envvars"
+for alias in ${(@k)dynload_data}; do
+  if [[ "${dynload_data[$alias]}" != "" ]]; then
+    alias "${alias}"="${dynload_data[$alias]}"
   else
-    unalias -m ${a_name}
+    unalias -m ${alias}
   fi
 done
 
 
+### helpers (cleanup)
+unfunction dynload
+
+##### LEGACY CLEAN UP BELOW ######
 # {{{ advanced
     ## cleanup aliases
     noglob unalias -m cd cp ls mv rm 
