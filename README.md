@@ -17,3 +17,6 @@ My personal dotFiles repository, somethings will be encrypted.
   - [ ] cleanup of auto completion
   - [ ] improved pkgsrc support for OSX
 - [ ] write sync script
+
+## Handy resources
+- http://zsh.sourceforge.net/Doc/Release/Expansion.html#Parameter-Expansion-Flags
