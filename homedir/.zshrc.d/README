@@ -1,0 +1,38 @@
+#### Dynamic zsh configuration
+## -----------------------------------------------------------------------------
+## This directory will dynamically allow control of the
+##  zsh configuration. You can use the following directories
+##  to dynamically set envvars, zsh options, ...
+##
+## .zshrc.d/envvars/ (filtered)
+## -----------------------------------------------------------------------------
+## For every file present in this directory a correspoding
+##  environment variable is exported. The value of the envvar
+##  is the content of the file.
+##
+## .zshrc.d/opts/
+## -----------------------------------------------------------------------------
+## For every file present the corresponding zsh options is set,
+##  options can also be unset by prepending no_ to the name.
+##
+## .zshrc.d/cmdlets/
+## -----------------------------------------------------------------------------
+## For every file present a function is created,
+##  the function will only get loaded the first time it is called.
+## The name of the file is the name of the function, make sure to 
+##  name the file the same as your function!
+##
+## .zshrc.d/aliases/ (filtered)
+## -----------------------------------------------------------------------------
+## For every file present an alias is created, the value of the
+##  alias is the content of the file.
+##
+## Filtering
+## -----------------------------------------------------------------------------
+## Some directories support filtering, the files can be prepended by either os
+##  or by host, followed by a colon, followed by the filter, followed by another
+##  colon and then the actualy name.
+##
+## Example:
+## - .zshrc.d/aliases/os:solaris:rsync will only be loaded on solaris.
+## - .zshrc.d/envvars/host:photon:PROXY will only be set on the host photon.
