@@ -77,9 +77,14 @@ done
 
 ### keybindings
 ## enable vi-mode
+KEYTIMEOUT=2
 bindkey -v
 bindkey -M viins "^r" history-incremental-search-backward
+bindkey -M viins "^?" backward-delete-char
+bindkey -M viins "^h" backward-delete-char
 bindkey -M vicmd "^r" history-incremental-search-backward
+bindkey -M vicmd "^?" backward-delete-char
+bindkey -M vicmd "^h" backward-delete-char
 bindkey " " magic-space # becasue I am lazy
 
 ## generic tweaks
@@ -112,102 +117,119 @@ for alias in ${(@k)dynload_data}; do
 done
 
 
+### automagic PATH updates
+## GNU/Linux
+case $OSTYPE in linux*)
+  # detect administrators
+  [ ${UID:-999} -eq 0 ] && WANT_SBIN=1
+  [ $(groups | grep -c sudo) -gt 0 ] && WANT_SBIN=1
+  [ $(groups | grep -c wheel) -gt 0 ] && WANT_SBIN=1
+
+  # LX BrandZ
+  if [ -d "/native" ]; then
+    export PATH="${PATH}:/native/usr/bin"
+    if [ "${WANT_SBIN:-0}" -gt 0 ]; then
+      export PATH="${PATH}:/native/sbin"
+      export PATH="${PATH}:/native/usr/sbin"
+    fi
+  fi
+;; esac
+
+## illumos (SmartOS/OmniOS/OpenIndiana), Sun Solaris, and Oracle Solaris
+case $OSTYPE in solaris*)
+  # detect administrators
+  [ ${UID:-999} -eq 0 ] && WANT_SBIN=1
+  [ $(groups | grep -c staff) -gt 0 ] && WANT_SBIN=1
+  [ $(groups | grep -c sysadmin) -gt 0 ] && WANT_SBIN=1
+  export MANPATH="${MANPAGE}/usr/share/man"
+
+  # add /usr/sbin if wanted
+  [ $(echo "${PATH}" | grep -c "/usr/sbin:")  -eq 0 ] &&  \
+    [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/usr/sbin"
+
+  # check for gnu
+  export PATH="$(echo "${PATH}" | /bin/sed -r 's#:/usr/gnu/s?bin##g')"
+  if [ -d "/usr/gnu" ]; then
+    export PATH="${PATH}:/usr/gnu/bin"
+    [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/usr/gnu/sbin"
+  fi
+
+  # check for pkgsrc (smartos)
+  export MANPATH="$(echo ${MANPATH} | /bin/sed -r 's#/opt/local/man:##g')"
+  export PATH="$(echo ${PATH} | /bin/sed -r 's#/opt/local/s?bin:##g')"
+  if [ -d "/opt/local" ]; then
+    export MANPATH="/opt/local/man:${MANPATH}"
+    [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="/opt/local/sbin:${PATH}"
+    export PATH="/opt/local/bin:${PATH}"
+  fi
+
+  # check for omniti repository (omnios)
+  export MANPATH="$(echo ${MANPATH} | /bin/sed -r 's#/opt/omni/share/man:##g')"
+  export PATH="$(echo ${PATH} | /bin/sed -r 's#/opt/omni/s?bin:##g')"
+  if [ -d "/opt/omni" ]; then
+    export MANPATH="${MANPATH}:/opt/omni/share/man"
+    export PATH="${PATH}:/opt/omni/bin"
+    [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/opt/omni/sbin"
+  fi
+
+  # check for /usr/local
+  export PATH="$(echo ${PATH} | /bin/sed -r 's#/usr/local/s?bin:##g')"
+  if [ -d "/usr/local" ]; then
+    export PATH="/usr/local/bin:${PATH}"
+    [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="/usr/local/sbin:${PATH}"
+  fi
+
+  # check for opencsw
+  export PATH="$(echo ${PATH} | /bin/sed -r 's#:/opt/csw/s?bin##g')"
+  if [ -d "/opt/csw" ]; then
+    export PATH="${PATH}:/opt/csw/gnu:/opt/csw/bin"
+    [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/opt/csw/sbin"
+  fi
+;; esac
+
+## MacOS
+case $OSTYPE in darwin*)
+  # use buildin autodetection
+  eval $(/usr/libexec/path_helper)
+;; esac
+
+
 ### helpers (cleanup)
 unfunction dynload
 
 ##### LEGACY CLEAN UP BELOW ######
 # {{{ advanced
-    ## cleanup aliases
-    noglob unalias -m cd cp ls mv rm 
-
     ## fix url quote's
     if [[ ${ZSH_VERSION//\./} -ge 420 ]] ; then
          autoload -U url-quote-magic
          zle -N self-insert url-quote-magic
     fi
 
+    ## FIXME: dir colorization
+
     ## os specific
     case $OSTYPE in linux*)
-        # detect root or staff
-        [ $UID -eq 0 ] && WANT_SBIN=1
-        [ $(groups | grep -c sudo) -gt 0 ] && WANT_SBIN=1
-        [ $(groups | grep -c wheel) -gt 0 ] && WANT_SBIN=1
-  
         # colorization
         eval $(dircolors)
         [ -f /etc/DIR_COLORS ] && eval $(dircolors -b /etc/DIR_COLORS)
         [ -f ~/.dir_colors ] && eval $(dircolors -b ~/.dir_colors)
 
-        alias ls="ls --group-directories-first"
+        ## FIXME update if needed
+        alias ls="${aliases[ls]:-ls} --group-directories-first"
         if [ -n "${LS_COLORS}" ]; then
             export ZLSCOLORS="${LS_COLORS}"
             alias ls="${aliases[ls]:-ls} --color=auto"
             alias grep="${aliases[grep]:-grep} --color=auto"
         fi
-  
-        # LX BrandZ
-        if [ -d /native ]; then
-            export PATH=$PATH:/native/usr/bin
-            if [ -n $WANT_SBIN ]; then
-                export PATH=$PATH:/native/sbin
-                export PATH=$PATH:/native/usr/sbin
-            fi
-        fi
     ;; esac
     case $OSTYPE in solaris*)
-        # detect root or staff
-        [ $UID -eq 0 ] && WANT_SBIN=1
-        [ $(groups | grep -c staff) -gt 0 ] && WANT_SBIN=1
-        [ $(groups | grep -c sysadmin) -gt 0 ] && WANT_SBIN=1
-        export MANPATH=/usr/share/man
-
-        # add /usr/sbin if wanted
-        [ $(echo $PATH | grep -c '/usr/sbin:')  -eq 0 ] && 
-            [ -n $WANT_SBIN ] && export PATH=$PATH:/usr/sbin
-
         # check for gnu
-        export PATH=$(echo $PATH | /bin/sed -r 's#:/usr/gnu/s?bin##g')
         if [ -d /usr/gnu ]; then
-            export PATH=$PATH:/usr/gnu/bin
-            [ -n $WANT_SBIN ] && export PATH=$PATH:/usr/gnu/sbin
-
             # selective gnu / colorization
             [ -e /usr/gnu/bin/sed ] && alias sed='/usr/gnu/bin/sed'
             [ -e /usr/gnu/bin/diff ] && alias diff='/usr/gnu/bin/diff'
             [ -e /usr/gnu/bin/tar ] && alias tar='/usr/gnu/bin/tar'
             [ -e /usr/gnu/bin/rm ] && alias rm='/usr/gnu/bin/rm'
-        fi
-  
-        # check for pkgsrc (smartos)
-        export PATH=$(echo $PATH | /bin/sed -r 's#/opt/local/s?bin:##g')
-        export MANPATH=$(echo $MANPATH | /bin/sed -r 's#/opt/local/man:##g')
-        if [ -d /opt/local ]; then
-            export MANPATH=/opt/local/man:$MANPATH
-            export PATH=/opt/local/bin:$PATH
-            [ -n $WANT_SBIN ] && export PATH=/opt/local/sbin:$PATH
-        fi
-
-        # check for omniti repository (omnios)
-        export PATH=$(echo $PATH | /bin/sed -r 's#/opt/omni/s?bin:##g')
-        export MANPATH=$(echo $MANPATH | /bin/sed -r 's#/opt/omni/share/man:##g')
-        if [ -d /opt/local ]; then
-            export MANPATH=$MANPATH:/opt/omni/share/man
-            export PATH=$PATH:/opt/omni/bin
-            [ -n $WANT_SBIN ] && export PATH=$PATH:/opt/omni/sbin
-        fi
-
-        # check for local
-        export PATH=$(echo $PATH | /bin/sed -r 's#/usr/local/s?bin:##g')
-        if [ -d /usr/local ]; then
-            export PATH=/usr/local/bin:$PATH
-            [ -n $WANT_SBIN ] && export PATH=/usr/local/sbin:$PATH
-        fi
-
-        # check for opencsw
-        export PATH=$(echo $PATH | /bin/sed -r 's#:/opt/csw/s?bin##g')
-        if [ -d /opt/csw ]; then
-            export PATH=$PATH:/opt/csw/gnu:/opt/csw/bin
-            [ -n $WANT_SBIN ] && export PATH=$PATH:/opt/csw/sbin
         fi
 
         # colorization
@@ -235,24 +257,17 @@ unfunction dynload
 
         # macports (with gnu)
         if [ -e /opt/local/bin/port ]; then
-            export PATH=/opt/local/libexec/gnubin:/opt/local/bin:/opt/local/sbin:$PATH
-            export MANPATH=/opt/local/share/man:$MANPATH
             if [ -f ~/.dir_colors ]; then
                 eval $(dircolors -b ~/.dir_colors)
                 export ZLSCOLORS="${LS_COLORS}"
                 unalias ls &> /dev/null
                 alias ls='ls --color=auto'
             fi
-            if [ -e /opt/local/bin/python2 ]; then
-                alias python='/opt/local/bin/python2'
-            fi
         fi
   
         # pkgsrc
         ##FIXME: use new auto wrapper
         if [ -e /opt/pkg/bin/pkgin ]; then
-            export PATH=/opt/pkg/gnu/bin:/opt/pkg/bin:/opt/pkg/sbin:$PATH
-            export MANPATH=/opt/pkg/man:$MANPATH
             if [ -f ~/.dir_colors ]; then
                 eval $(dircolors -b ~/.dir_colors)
                 export ZLSCOLORS="${LS_COLORS}"
@@ -261,8 +276,6 @@ unfunction dynload
             fi
             alias pkgin='sudo pkgin'
         elif [ -e /usr/pkg/bin/pkgin ]; then
-            export PATH=/usr/pkg/gnu/bin:/usr/pkg/bin:/usr/pkg/sbin:$PATH
-            export MANPATH=/usr/pkg/man:$MANPATH
             if [ -f ~/.dir_colors ]; then
                 eval $(dircolors -b ~/.dir_colors)
                 export ZLSCOLORS="${LS_COLORS}"
@@ -287,9 +300,6 @@ unfunction dynload
     ## FIXME: move me to somewhere else
     case ${HOST:r} in
         (axion*|tachyon*|photon*)
-            # proper UTF-8
-            export LANG=en_US.UTF-8
-
             # host color
             PROMPT_HOST_COLOR=green
         ;;
@@ -369,8 +379,9 @@ unfunction dynload
     ## pretty menu's
     zstyle ':completion:*' menu select=1
     zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-    setopt auto_menu    # show menu on 2nd <tab>
-    setopt list_rows_first  # use row list if possible
+    #setopt auto_menu    # show menu on 2nd <tab>
+    setopt auto_list
+    #setopt list_rows_first  # use row list if possible
 
     ## prevent re-suggestion
     zstyle ':completion:*:(scp|rm|kill|diff):*' ignore-line yes
