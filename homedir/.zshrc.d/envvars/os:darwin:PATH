@@ -1,0 +1,9 @@
+#!/bin/sh
+
+## use macos's build in path generator
+eval $(/usr/libexec/path_helper)
+
+# return new PATH
+echo "${PATH}"
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

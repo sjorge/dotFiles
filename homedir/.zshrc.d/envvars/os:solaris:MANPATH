@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# add  /usr/share/man
+[ -d "/usr/share/man" ] && \
+  MANPATH="${MANPAGE}:/usr/share/man"
+
+# check for pkgsrc (smartos)
+MANPATH="$(echo ${MANPATH} | /bin/sed -r 's#/opt/local/man:##g')"
+if [ -d "/opt/local" ]; then
+  MANPATH="/opt/local/man:${MANPATH}"
+fi
+
+# check for omniti repository (omnios)
+MANPATH="$(echo ${MANPATH} | /bin/sed -r 's#/opt/omni/share/man:##g')"
+if [ -d "/opt/omni" ]; then
+  MANPATH="${MANPATH}:/opt/omni/share/man"
+fi
+
+# return new MANPATH
+echo "${MANPATH}"
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

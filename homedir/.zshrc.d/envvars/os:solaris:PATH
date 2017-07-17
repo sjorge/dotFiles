@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# detect administrators
+[ ${UID:-999} -eq 0 ] && WANT_SBIN=1
+[ $(groups | grep -c staff) -gt 0 ] && WANT_SBIN=1
+[ $(groups | grep -c sysadmin) -gt 0 ] && WANT_SBIN=1
+
+# add /usr/sbin if wanted
+[ $(echo "${PATH}" | grep -c "/usr/sbin:")  -eq 0 ] &&  \
+  [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/usr/sbin"
+
+# check for gnu
+export PATH="$(echo "${PATH}" | /bin/sed -r 's#:/usr/gnu/s?bin##g')"
+if [ -d "/usr/gnu" ]; then
+  export PATH="${PATH}:/usr/gnu/bin"
+  [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/usr/gnu/sbin"
+fi
+
+# check for pkgsrc (smartos)
+export PATH="$(echo ${PATH} | /bin/sed -r 's#/opt/local/s?bin:##g')"
+if [ -d "/opt/local" ]; then
+  [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="/opt/local/sbin:${PATH}"
+  export PATH="/opt/local/bin:${PATH}"
+fi
+
+# check for omniti repository (omnios)
+export PATH="$(echo ${PATH} | /bin/sed -r 's#/opt/omni/s?bin:##g')"
+if [ -d "/opt/omni" ]; then
+  export PATH="${PATH}:/opt/omni/bin"
+  [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/opt/omni/sbin"
+fi
+
+# check for /usr/local
+export PATH="$(echo ${PATH} | /bin/sed -r 's#/usr/local/s?bin:##g')"
+if [ -d "/usr/local" ]; then
+  export PATH="/usr/local/bin:${PATH}"
+  [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="/usr/local/sbin:${PATH}"
+fi
+
+# check for opencsw
+export PATH="$(echo ${PATH} | /bin/sed -r 's#:/opt/csw/s?bin##g')"
+if [ -d "/opt/csw" ]; then
+  export PATH="${PATH}:/opt/csw/gnu:/opt/csw/bin"
+  [ "${WANT_SBIN:-0}" -gt 0 ] && export PATH="${PATH}:/opt/csw/sbin"
+fi
+
+# return new PATH
+echo "${PATH}"
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

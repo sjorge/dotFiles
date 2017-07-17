@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# detect administrators
+[ ${UID:-999} -eq 0 ] && WANT_SBIN=1
+[ $(groups | grep -c sudo) -gt 0 ] && WANT_SBIN=1
+[ $(groups | grep -c wheel) -gt 0 ] && WANT_SBIN=1
+
+# LX BrandZ
+if [ -d "/native" ]; then
+  export PATH="${PATH}:/native/usr/bin"
+  if [ "${WANT_SBIN:-0}" -gt 0 ]; then
+    export PATH="${PATH}:/native/sbin"
+    export PATH="${PATH}:/native/usr/sbin"
+  fi
+fi
+
+# return new PATH
+echo "${PATH}"
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
