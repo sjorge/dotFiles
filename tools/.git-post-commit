@@ -1,0 +1,17 @@
+#!/bin/zsh
+####
+# Try and restore permissions
+####
+
+TOPDIR="$(git rev-parse --show-toplevel)"
+PERMDB="${TOPDIR}/.permissions"
+
+echo -n "Restoring file permissions..."
+case "${OSTYPE}" in
+  darwin*)
+    [ -e "${PERMDB}" ] && /bin/zsh "${TOPDIR}/.permissions" && echo "OK" || echo "ERROR"
+  ;;
+  *) echo "UNSUPPORTED" ;;
+esac
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

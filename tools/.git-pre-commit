@@ -1,0 +1,28 @@
+#!/bin/zsh
+####
+# Try and store permissions
+####
+
+TOPDIR="$(git rev-parse --show-toplevel)"
+PERMDB="${TOPDIR}/.permissions"
+
+echo -n "Backing-up file permissions..."
+case "${OSTYPE}" in
+  darwin*)
+    # Clear the permissions database file
+    [ -e "${PERMDB}" ] && rm "${PERMDB}"
+
+    IFS_OLD=$IFS; IFS=$'\n'
+    for file in $(git ls-files); do
+      # Save the permissions of all the files in the index
+      stat -f 'chmod %p "%N"' "${file}" >> "${PERMDB}"
+    done
+    IFS=$IFS_OLD
+
+    # Add the permissions database file to the index
+    git add "${PERMDB}" && echo "OK" || echo "ERROR"
+  ;;
+  *) echo "UNSUPPORTED" ;;
+esac
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
