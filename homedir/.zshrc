@@ -107,7 +107,7 @@ unalias -a
 [[ -e ~/.aliases ]] && source ~/.aliases || true
 
 ## dynamically load extra aliases
-dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/envvars"
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/aliases"
 for alias in ${(@k)dynload_data}; do
   if [[ "${dynload_data[$alias]}" != "" ]]; then
     alias "${alias}"="${dynload_data[$alias]}"
@@ -127,8 +127,6 @@ unfunction dynload
          autoload -U url-quote-magic
          zle -N self-insert url-quote-magic
     fi
-
-    ## FIXME: dir colorization
 
     ## os specific
     case $OSTYPE in linux*)
@@ -197,7 +195,6 @@ unfunction dynload
                 unalias ls &> /dev/null
                 alias ls='ls --color=auto'
             fi
-            alias pkgin='sudo pkgin'
         elif [ -e /usr/pkg/bin/pkgin ]; then
             if [ -f ~/.dir_colors ]; then
                 eval $(dircolors -b ~/.dir_colors)
@@ -205,7 +202,6 @@ unfunction dynload
                 unalias ls &> /dev/null
                 alias ls='ls --color=auto'
             fi
-            alias pkgin='sudo pkgin'
         fi
         
         ## helpers        
@@ -224,7 +220,7 @@ unfunction dynload
     case ${HOST:r} in
         (axion*|tachyon*|photon*)
             # host color
-            PROMPT_HOST_COLOR=green
+            #PROMPT_HOST_COLOR=green
         ;;
         (exosphere*|crust*)
             PROMPT_HOST_COLOR=red
