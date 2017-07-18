@@ -6,7 +6,7 @@
 ## figure out repository base
 TOPDIR="$(git rev-parse --show-toplevel)"
 DIFFBIN="diff"
-DIFFARG=
+DIFFARG="-u"
 FORCE=0
 
 ## parse args
@@ -21,6 +21,7 @@ if which -ps gdiff 2> /dev/null > /dev/null; then
   DIFFBIN="gdiff"
   DIFFARG="--color=auto -u"
 fi
+[[ "${OSTYPE}" =~ "^linux" ]] && DIFFARG="--color=auto -u"
 
 ## create directories
 echo "[..] Creating Directories ..."
