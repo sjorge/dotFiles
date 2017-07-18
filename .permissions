@@ -17,7 +17,6 @@ PERM["homedir/.zshrc.d/aliases/os:darwin:zfs"]=100700
 PERM["homedir/.zshrc.d/aliases/os:darwin:zpool"]=100700
 PERM["homedir/.zshrc.d/aliases/os:solaris:zfs_rsync"]=100600
 PERM["homedir/.zshrc.d/aliases/os:solaris:zfs_rsync+"]=100600
-PERM["homedir/.zshrc.d/aliases/smbshow"]=100600
 PERM["homedir/.zshrc.d/aliases/ssh_nhc"]=100600
 PERM["homedir/.zshrc.d/aliases/weather"]=100600
 PERM["homedir/.zshrc.d/cmdlets/ch2zsh"]=100600

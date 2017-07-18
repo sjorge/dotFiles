@@ -77,7 +77,7 @@ for file in ${(o)${(@k)PERM}}; do
   [ "$rmode" -ge 100000 ] && rmode=${rmode[-4,-1]}
   if [ -n "${rfile}" ]; then
     echo -n "[>>]  ${(Q)rfile}\r"
-    chmod ${rmode} "${(Q)rfile}" && echo -e "[++]" || echo -e "[!!]"
+    chmod ${rmode} "${(Q)rfile}" 2> /dev/null > /dev/null && echo -e "[++]" || echo -e "[!!]"
   fi
 done
 popd
