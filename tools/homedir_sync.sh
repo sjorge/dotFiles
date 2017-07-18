@@ -21,7 +21,6 @@ if which -ps gdiff 2> /dev/null > /dev/null; then
   DIFFBIN="gdiff"
   DIFFARG="--color=auto -u"
 fi
-[[ "${OSTYPE}" =~ "^linux" ]] && DIFFARG="--color=auto -u"
 
 ## create directories
 echo "[..] Creating Directories ..."
