@@ -12,10 +12,13 @@ case "${OSTYPE}" in
     if [ -e "${PERMDB}" ]; then
       source "${TOPDIR}/.permissions"
       pushd "${TOPDIR}"
-      for file in ${(@k)PERM}; do
-        eval chmod ${PERM[${file}]} "${file}"
+      for file in ${(o)${(@k)PERM}}; do
+        mode=${PERM[${file}]}
+        [ "${mode}" -ge 100000 ] && mode=${mode[-4,-1]}
+        if [ -n "${(Q)file}" ]; then
+          chmod ${mode} "${(Q)file}"
+        fi
       done
-      popd
       echo "OK"
     fi
   ;;

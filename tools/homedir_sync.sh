@@ -73,9 +73,11 @@ source "${TOPDIR}/.permissions"
 pushd "${HOME}"
 for file in ${(o)${(@k)PERM}}; do
   rfile=$(echo ${file} | grep "homedir/" | sed 's#homedir/##g;s#\.enc$##g')
+  rmode=${PERM[${file}]}
+  [ "$rmode" -ge 100000 ] && rmode=${rmode[-4,-1]}
   if [ -n "${rfile}" ]; then
     echo -n "[>>]  ${(Q)rfile}\r"
-    chmod ${PERM[${file}]} "${(Q)rfile}" && echo -e "[++]" || echo -e "[!!]"
+    chmod ${rmode} "${(Q)rfile}" && echo -e "[++]" || echo -e "[!!]"
   fi
 done
 popd
