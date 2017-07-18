@@ -7,13 +7,30 @@
 PKGSRC_BIN=/opt/pkg/bin
 PKGSRC_WANT=(
   zsh
-  rsync
   ssh
   ssh-add
   ssh-agent
   ssh-keygen
   ssh-keyscan
+  rsync
   git
+  bunzip2
+  bzip2
+  bzip2recover
+  gunzip
+  gzip
+  unzip
+  unzipsfx
+  zip
+  zipcloak
+  zipcmp
+  zipdetails
+  zipgrep
+  zipinfo
+  zipmerge
+  zipnote
+  zipsplit
+  ziptool
 )
 
 for tool in ${PKGSRC_WANT}; do
