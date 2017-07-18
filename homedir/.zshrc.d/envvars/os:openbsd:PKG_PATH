@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# return new PKG_PATH
+echo "http://ftp.openbsd.org/pub/OpenBSD/$(uname -r)/packages/$(uname -m)/"
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
