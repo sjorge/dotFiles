@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/zsh
 
 # detect administrators
 [ ${UID:-999} -eq 0 ] && WANT_SBIN=1
 [ $(groups | grep -c admin) -gt 0 ] && WANT_SBIN=1
 
 # check for binary
-[ "${WANT_SBIN:-0}" -gt 0 ] && [ -n "$(which zpool 2> /dev/null)" ] && echo "sudo zpool"
+[ "${WANT_SBIN:-0}" -gt 0 ] && which -ps zpool 2> /dev/null > /dev/null  && echo "sudo zpool"
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

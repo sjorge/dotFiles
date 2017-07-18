@@ -4,9 +4,9 @@
 ##       operating system in use.
 ch2zsh() {
   case $OSTYPE in
-    linux*|darwin*|openbsd*) chsh -s $(which zsh)                                 ;;
-    solaris*)                pfexec /usr/sbin/usermod -s $(which zsh) $(id -n -u) ;;
-    *)                       echo "No zshenable implemented for $OSTYPE."         ;;
+    linux*|darwin*|openbsd*) chsh -s ${(s: -> :)$(which -ps zsh)[-1]}                                 ;;
+    solaris*)                pfexec /usr/sbin/usermod -s ${(s: -> :)$(which -ps zsh)[-1]} $(id -n -u) ;;
+    *)                       echo "No zshenable implemented for $OSTYPE."                             ;;
   esac
 }
 
