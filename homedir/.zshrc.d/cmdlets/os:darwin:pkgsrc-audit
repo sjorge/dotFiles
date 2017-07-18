@@ -1,0 +1,7 @@
+#### cmdlet for auditing install pkgsrc packages
+pkgsrc-audit() {
+ sudo /opt/pkg/sbin/pkg_admin fetch-pkg-vulnerabilities
+ sudo /opt/pkg/sbin/pkg_admin audit
+}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
