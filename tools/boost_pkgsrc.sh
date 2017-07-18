@@ -5,7 +5,7 @@
 ###
 
 PKGSRC_BIN=/opt/pkg/bin
-PKGSRC_WANT=(rsync)
+PKGSRC_WANT=(zsh rsync)
 
 for tool in ${PKGSRC_WANT}; do
  local pkgsrc_path="${PKGSRC_BIN}/${tool}"
