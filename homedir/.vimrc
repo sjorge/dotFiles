@@ -12,5 +12,11 @@ set hlsearch                      " Highlight matches.
 set wrap                          " Turn on line wrapping.
 set modeline                      " Allow per file config
 set modelines=3                   " Modeline should be one of the last 3 lines
+set bg=dark                       " pastel colors
+
+set expandtab                     " expand tabs to spaces
+set shiftwidth=4                  " set index to 4 spaces
+set softtabstop=4                 " tab inserts 4 spaces
+set autoindent                    " auto indent
 
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
