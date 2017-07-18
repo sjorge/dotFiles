@@ -12,7 +12,7 @@
 ## If the execute bit is set the file is executed as a script and the output is
 ##  assigned to the environment variable.
 ##
-## .zshrc.d/opts/
+## .zshrc.d/options/
 ## -----------------------------------------------------------------------------
 ## For every file present the corresponding zsh options is set,
 ##  options can also be unset by prepending no_ to the name.

@@ -6,17 +6,27 @@ My personal dotFiles repository, somethings will be encrypted.
 - tools/   :: tools and wrapper for syncing my dotFiles
 
 ## TODO
-- [ ] reimplement ``cerberus`` using ``site_ssh``
-  - [ ] basic ssh site switching cmdlet
-  - [ ] add support for agent -> none, standalone, gpg, gpg-shared
+- [ ] tools
+  - [X] git_setup_hook.sh
+  - [X] pkgsrc_setup_preferences.sh
+  - [ ] homedir_sync.sh
 - [ ] .zshrc
-  - [ ] use .zshrc.d (better path?)
-  - [ ] create pluggable cmdlets in .zshrc.d/cmdlet/NAME
-  - [ ] move themes to .zshrc.d/theme/NAME
-  - [ ] move host specfic stuff to .zshrc.d/host/UNAME
-  - [ ] cleanup of auto completion
-  - [ ] improved pkgsrc support for OSX
-- [ ] write sync script
+  - [ ] cleanup
+  - [ ] configure LS_COLORS to match macOS ls colorization
+  - [X] create .zshrc.d/ for dynamic configuration
+    - [X] envvars :: setting of environment variables
+    - [X] cmdlets :: autoloading of shell functions
+    - [X] aliases :: autoloading of aliases
+    - [X] options :: auto set/unset of zsh options
+    - [ ] themes  :: zsh themes
+  - [ ] cerberus replacement using cmdlet
+    - [ ] wrapper for ssh/scp/...
+    - [ ] add ``site`` support (symlink default -> prefered site)
+    - [ ] ``site`` should have custom knownhosts, ssh_config, ...
+    - [ ] ``site`` easy agent -> none, ssh-agent-(shared), gpg-agent(-shared)
+- [ ] .vimrc
+  - [X] cleanup
+  - [ ] add plugins
 
 ## Handy resources
 - http://zsh.sourceforge.net/Doc/Release/Options.html

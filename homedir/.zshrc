@@ -72,7 +72,7 @@ done
 
 ### options
 ## dynamically (un)set options
-dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/opts" 0
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/options/" 0
 for opt in ${(@k)dynload_data}; do
   case "${opt}" in
     no_*)   unset ${opt:3} ;;
@@ -123,6 +123,61 @@ for alias in ${(@k)dynload_data}; do
 done
 
 
+### colorization
+## os specfic handling
+case $OSTYPE in
+  linux*)
+    eval $(dircolors)
+    [ -r /etc/DIR_COLORS ] && eval $(dircolors -b /etc/DIR_COLORS)
+    [ -r ~/.dir_colors ]   && eval $(dircolors -b ~/.dir_colors)
+
+    if [ -n "${LS_COLORS}" ]; then
+      export CLICOLOR=1
+      alias ls="${aliases[ls]:-ls} --color=auto"
+      alias grep="${aliases[grep]:-grep} --color=auto"
+      alias diff="${aliases[diff]:-diff} --color=auto"
+    fi
+  ;;
+  darwin*|solaris*)
+    export CLICOLOR=1
+
+    if which -ps dircolors 2> /dev/null > /dev/null; then
+      eval $(dircolors)
+      [ -r /etc/DIR_COLORS ] && eval $(dircolors -b /etc/DIR_COLORS)
+      [ -r ~/.dir_colors ]   && eval $(dircolors -b ~/.dir_colors)
+    fi
+
+    ## check for gnu binaries
+    for gnubin_name in ls grep diff; do
+      ## check for gnu binaries
+      which -ps "g${gnubin_name}" 2> /dev/null > /dev/null && \
+        alias "g${gnubin_name}"="${aliases[g${gnubin_name}]:-g${gnubin_name}} --color=auto"
+
+      ## check for symlinks to gnu versions
+      gnubin_path=${(s: -> :)$(which -ps ${gnubin_name})[-1]}
+      case "${gnubin_path}" in
+        /opt/local/gnu/bin/${gnubin_name}) # NOTE: pkgsrc_SmartOS
+          is_gnu_bin=1
+        ;;
+        /usr/gnu/bin/${gnubin_name})       # NOTE: OmniOS/OpenIndiana
+          is_gnu_bin=1
+        ;;
+        /(usr|opt)/pkg/bin/g${gnubin_name}) # NOTE: pkgsrc_macOS
+          is_gnu_bin=1
+        ;;
+        *)
+          is_gnu_bin=0
+        ;;
+      esac
+      [ "${is_gnu_bin}" -gt 0 ] && alias ${gnubin_name}="${aliases[${gnubin_name}]:-${gnubin_name}} --color=auto"
+    done
+  ;;
+  openbsd*)
+    export CLICOLOR=1
+    [ -e /usr/local/bin/colorls ] && alias ls='/usr/local/bin/colorls -G'
+  ;;
+esac
+
 ### helpers (cleanup)
 unfunction dynload
 
@@ -133,79 +188,6 @@ unfunction dynload
          autoload -U url-quote-magic
          zle -N self-insert url-quote-magic
     fi
-
-    ## os specific
-    case $OSTYPE in linux*)
-        # colorization
-        eval $(dircolors)
-        [ -f /etc/DIR_COLORS ] && eval $(dircolors -b /etc/DIR_COLORS)
-        [ -f ~/.dir_colors ] && eval $(dircolors -b ~/.dir_colors)
-
-        ## FIXME update if needed
-        alias ls="${aliases[ls]:-ls} --group-directories-first"
-        if [ -n "${LS_COLORS}" ]; then
-            export ZLSCOLORS="${LS_COLORS}"
-            alias ls="${aliases[ls]:-ls} --color=auto"
-            alias grep="${aliases[grep]:-grep} --color=auto"
-        fi
-    ;; esac
-    case $OSTYPE in solaris*)
-        # check for gnu
-        if [ -d /usr/gnu ]; then
-            # selective gnu / colorization
-            [ -e /usr/gnu/bin/sed ] && alias sed='/usr/gnu/bin/sed'
-            [ -e /usr/gnu/bin/diff ] && alias diff='/usr/gnu/bin/diff'
-            [ -e /usr/gnu/bin/tar ] && alias tar='/usr/gnu/bin/tar'
-            [ -e /usr/gnu/bin/rm ] && alias rm='/usr/gnu/bin/rm'
-        fi
-
-        # colorization
-        case $(which ls) in
-          /opt/local/bin/ls) alias ls='ls --color' ;;
-          /usr/bin/ls) alias ls='ls --color' ;;
-          /usr/gnu/bin/ls) ls='ls --color=auto' ;;
-        esac
-        case $(which grep) in
-          /opt/local/bin/grep) alias grep='grep --color=auto' ;;
-          /usr/gnu/bin/grep) alias grep='grep --color=auto' ;;
-        esac
-    ;; esac
-    case $OSTYPE in openbsd*)
-        # colorization
-        [ -e /usr/local/bin/colorls ] && alias ls='/usr/local/bin/colorls -G'
-    ;; esac
-    case $OSTYPE in darwin*)
-        # colorization
-        export CLICOLOR=1
-        alias ls='ls -G'
-
-        # macports (with gnu)
-        if [ -e /opt/local/bin/port ]; then
-            if [ -f ~/.dir_colors ]; then
-                eval $(dircolors -b ~/.dir_colors)
-                export ZLSCOLORS="${LS_COLORS}"
-                unalias ls &> /dev/null
-                alias ls='ls --color=auto'
-            fi
-        fi
-  
-        # pkgsrc
-        if [ -e /opt/pkg/bin/pkgin ]; then
-            if [ -f ~/.dir_colors ]; then
-                eval $(dircolors -b ~/.dir_colors)
-                export ZLSCOLORS="${LS_COLORS}"
-                unalias ls &> /dev/null
-                alias ls='ls --color=auto'
-            fi
-        elif [ -e /usr/pkg/bin/pkgin ]; then
-            if [ -f ~/.dir_colors ]; then
-                eval $(dircolors -b ~/.dir_colors)
-                export ZLSCOLORS="${LS_COLORS}"
-                unalias ls &> /dev/null
-                alias ls='ls --color=auto'
-            fi
-        fi
-    ;; esac
 
     ## host specific
     ## FIXME: move me to somewhere else
@@ -222,9 +204,6 @@ unfunction dynload
             PROMPT_HOST_COLOR=blue
         ;;  
     esac
-  
-    ## local configuration
-    [[ -e ~/.zlocal ]] && source ~/.zlocal
 # }}}
 
 # {{{ auto completion
@@ -382,31 +361,34 @@ unfunction dynload
 
 # {{{ auto correction
     ## disable auto correct
-    alias cd='nocorrect cd'
-    alias cp='nocorrect cp'
-    alias gcc='nocorrect gcc'
-    alias grep='nocorrect grep'
-    alias ln='nocorrect ln'
-    alias man='nocorrect man'
-    alias mkdir='nocorrect mkdir'
-    alias mv='nocorrect mv'
-    alias rm="nocorrect ${aliases[rm]:-rm}"
-    which sshpass &> /dev/null ; [ $? -eq 0 ] && alias sshpass='nocorrect sshpass'
+    #alias cd='nocorrect cd'
+    #alias cp='nocorrect cp'
+    #alias gcc='nocorrect gcc'
+    #alias grep='nocorrect grep'
+    #alias ln='nocorrect ln'
+    #alias man='nocorrect man'
+    #alias mkdir='nocorrect mkdir'
+    #alias mv='nocorrect mv'
+    #alias rm="nocorrect ${aliases[rm]:-rm}"
+    #which sshpass &> /dev/null ; [ $? -eq 0 ] && alias sshpass='nocorrect sshpass'
     
     ## disable globbing.
-    alias find='noglob find'
-    alias ftp='noglob ftp'
-    alias history='noglob history'
-    alias locate='noglob locate'
-    alias rsync='noglob rsync'
-    alias scp='noglob scp'
-    alias sftp='noglob sftp'
-    alias ssh='noglob ssh'
+    #alias find='noglob find'
+    #alias ftp='noglob ftp'
+    #alias history='noglob history'
+    #alias locate='noglob locate'
+    #alias rsync='noglob rsync'
+    #alias scp='noglob scp'
+    #alias sftp='noglob sftp'
+    #alias ssh='noglob ssh'
 # }}}
 
 # {{{ prompt
     ## FIXME: move to somewhere else
     ## drop some old ones and add newish ones inspired by https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes
+
+    source ~/.zlocal
+
     ## enable colors and prompt module
     autoload -U colors && colors
     autoload -Uz promptinit && promptinit
