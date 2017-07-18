@@ -6,10 +6,10 @@ My personal dotFiles repository, somethings will be encrypted.
 - tools/   :: tools and wrapper for syncing my dotFiles
 
 ## TODO
-- [ ] tools
+- [X] tools
   - [X] git_setup_hook.sh
   - [X] pkgsrc_setup_preferences.sh
-  - [ ] homedir_sync.sh
+  - [X] homedir_sync.sh
 - [ ] .zshrc
   - [ ] cleanup
   - [ ] configure LS_COLORS to match macOS ls colorization
