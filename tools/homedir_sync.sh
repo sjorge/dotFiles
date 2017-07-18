@@ -25,7 +25,7 @@ fi
 ## create directories
 echo "[..] Creating Directories ..."
 pushd "${TOPDIR}/homedir"
-for dir in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -type f -name '/README' -prune -o -name '*.enc' -prune -o -type d -print); do
+for dir in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -name '*.enc' -prune -o -type d -print); do
   dir=${dir[3,-1]}
   pushd "${HOME}"
   echo -ne "[>>]   ${dir}\r"
@@ -41,7 +41,7 @@ popd
 ## compare files
 echo "[..] Copying files ..."
 pushd "${TOPDIR}/homedir"
-for file in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -type f -name '/README' -prune -o -name '*.enc' -prune -o -type f -print); do
+for file in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -name '*.enc' -prune -o -type f -print); do
   file=${file[3,-1]}
   pushd "${HOME}"
   echo -ne "[>>]   ${file}\r"
