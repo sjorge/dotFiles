@@ -154,7 +154,7 @@ case $OSTYPE in
         alias "g${gnubin_name}"="${aliases[g${gnubin_name}]:-g${gnubin_name}} --color=auto"
 
       ## check for symlinks to gnu versions
-      gnubin_path=${(s: -> :)$(which -ps ${gnubin_name})[-1]}
+      gnubin_path=${(s# -> #)$(which -ps ${gnubin_name})[-1]}
       case "${gnubin_path}" in
         /opt/local/gnu/bin/${gnubin_name}) # NOTE: pkgsrc_SmartOS
           is_gnu_bin=1
