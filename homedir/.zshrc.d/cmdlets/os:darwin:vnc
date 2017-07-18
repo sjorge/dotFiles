@@ -1,0 +1,11 @@
+#### cmdlet for connecting to a vnc server on macOS
+vnc() {
+  vncviewer="$(which vncviewer 2> /dev/null)"
+  if [ -x "${vncviewer}" ]; then
+    vncviewer $@
+  else
+    open vnc://$@
+  fi
+}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

@@ -6,7 +6,7 @@
 typeset -A dynload_data
 function dynload() {
   local s_dir=${@[1]}
-  local b_read=${@[2]:-1}
+  local b_flag=${@[2]:-1}
   dynload_data=()
 
   [[ ! -d "${s_dir}/" ]] && return
@@ -22,11 +22,17 @@ function dynload() {
       esac
       e_name="${e_name[-1]}"
     fi
-    if [ "${b_read}" -gt 0 ]; then # read content if requested
-      [ -x "${fn_entry}" ] && \
-        e_value="$("${fn_entry}")"     || \
-        e_value="$(head -n 1 "${fn_entry}")"
+    if [ "${b_flag}" -eq 1 ] && [ -x "${fn_entry}" ]; then
+      ## NOTE: value is the output after execution
+      e_value="$("${fn_entry}")"
+    elif [ "${b_flag}" -eq 1 ]; then
+      ## NOTE: value is the first line of the file
+      e_value="$(head -n 1 "${fn_entry}")"
+    elif [ "${b_flag}" -eq 2 ]; then
+      ## NOTE: value is the filepath
+      e_value="${fn_entry}"
     else
+      ## NOTE: default to no value
       e_value=
     fi
 
@@ -93,9 +99,9 @@ bindkey "\e[Z" reverse-menu-complete # Shift+Tab
 
 ### cmdlets
 ## dynamically load extra functions/cmdlets
-dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 0
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 2
 for cmd in ${(@k)dynload_data}; do
-  eval "${cmd}() { source "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets/${cmd}"; ${cmd} \$@ }"
+  eval "${cmd}() { source "${dynload_data[$cmd]}"; ${cmd} \$@ }"
 done
 
 
@@ -165,9 +171,6 @@ unfunction dynload
         esac
     ;; esac
     case $OSTYPE in openbsd*)
-        # set PKG_PATH
-        export PKG_PATH=http://ftp.openbsd.org/pub/OpenBSD/`uname -r`/packages/`uname -m`/  
-
         # colorization
         [ -e /usr/local/bin/colorls ] && alias ls='/usr/local/bin/colorls -G'
     ;; esac
@@ -187,7 +190,6 @@ unfunction dynload
         fi
   
         # pkgsrc
-        ##FIXME: use new auto wrapper
         if [ -e /opt/pkg/bin/pkgin ]; then
             if [ -f ~/.dir_colors ]; then
                 eval $(dircolors -b ~/.dir_colors)
@@ -203,16 +205,6 @@ unfunction dynload
                 alias ls='ls --color=auto'
             fi
         fi
-        
-        ## helpers        
-        function vnc() {
-            which vncviewer &> /dev/null
-            if [ $? -eq 0 ]; then
-                vncviewer $@
-            else
-                open vnc://$@
-            fi
-        }
     ;; esac
 
     ## host specific
