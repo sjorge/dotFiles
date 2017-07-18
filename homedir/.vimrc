@@ -12,6 +12,7 @@ set hlsearch                      " Highlight matches.
 set wrap                          " Turn on line wrapping.
 set modeline                      " Allow per file config
 set modelines=3                   " Modeline should be one of the last 3 lines
+set paste                         " help with pasting
 set bg=dark                       " pastel colors
 
 set expandtab                     " expand tabs to spaces
