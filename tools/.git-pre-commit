@@ -10,12 +10,12 @@ echo -n "Backing-up file permissions..."
 case "${OSTYPE}" in
   darwin*)
     # Clear the permissions database file
-    [ -e "${PERMDB}" ] && rm "${PERMDB}"
+    echo "typeset -A PERM" > "${PERMDB}"
 
     IFS_OLD=$IFS; IFS=$'\n'
     for file in $(git ls-files); do
       # Save the permissions of all the files in the index
-      stat -f 'chmod %p "%N"' "${file}" >> "${PERMDB}"
+      stat -f 'PERM["%N"]=%p' "${file}" >> "${PERMDB}"
     done
     IFS=$IFS_OLD
 
