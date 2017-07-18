@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!env zsh
 ####
 # Copy dotfiles to homedirectory
 ###

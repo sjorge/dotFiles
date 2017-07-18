@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!env zsh
 ####
 # Install git-hook
 ####

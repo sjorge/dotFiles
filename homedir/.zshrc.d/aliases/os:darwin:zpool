@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!env zsh
 
 # detect administrators
 [ ${UID:-999} -eq 0 ] && WANT_SBIN=1

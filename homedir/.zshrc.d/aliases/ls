@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!env zsh
 ####
 # When using gnu ls, inject --group-directories-first --quoting-style=literal to the alias
 ####
