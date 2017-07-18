@@ -1,4 +1,3 @@
-" update: curl -sk "https://docu.blackdot.be/_export/code/configuration/vim?codeblock=0" -o ~/.vimrc 
 set nocompatible                  " Must come first because it changes other options.
 syntax enable                     " Turn on syntax highlighting.
 filetype plugin on                " Turn on file type detection.
@@ -12,5 +11,6 @@ set incsearch                     " Highlight matches as you type.
 set hlsearch                      " Highlight matches.
 set wrap                          " Turn on line wrapping.
 set modeline                      " Allow per file config
+set modelines=3                   " Modeline should be one of the last 3 lines
 
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
