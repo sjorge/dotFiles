@@ -10,7 +10,7 @@ My personal dotFiles repository, somethings will be encrypted.
   - [X] git_setup_hook.sh
   - [X] pkgsrc_setup_preferences.sh
   - [X] homedir_sync.sh
-  - [ ] homedir_sync.sh file removal support
+  - [X] homedir_sync.sh file removal support
   - [ ] homedir_sync.sh file encryption support
 - [ ] .zshrc
   - [ ] cleanup

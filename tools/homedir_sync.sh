@@ -63,6 +63,29 @@ for file in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -name '*.en
 done
 popd
 
+## removing old files
+# NOTE: we only check in subfolders of homedir/, doing otherwise would delete too many files!
+echo "[..] Removing files ..."
+pushd "${TOPDIR}/homedir"
+for dir in $(find . -mindepth 1 -maxdepth 1 -type d -print); do
+  pushd "${HOME}"
+  dir=${dir[3,-1]}
+  for file in $(find $dir -mindepth 1 -type f -name '.DS_Store' -prune -o -type f -print); do
+    if [ ! -e "${TOPDIR}/homedir/${file}" ] && [ ! -e "${TOPDIR}/homedir/${file}.enc" ]; then
+      echo -ne "[>>]  ${file}\r"
+      if [ "${FORCE}" -gt 0 ]; then
+        rm "${file}" && echo "[--]" || echo "[!!]"
+      else
+        echo "[??]"
+        read -q "do_remove?Remove file? (y/N) " ; echo
+        [[ "${do_remove}" == "y" ]] && rm "${file}"
+      fi
+    fi
+  done
+  popd
+done
+popd
+
 ## decrypt encrypted files
 echo "[..] Decrypting files ..."
 echo "[??]   TODO" ## TODO
@@ -77,7 +100,7 @@ for file in ${(o)${(@k)PERM}}; do
   [ "$rmode" -ge 100000 ] && rmode=${rmode[-4,-1]}
   if [ -n "${rfile}" ]; then
     echo -n "[>>]  ${(Q)rfile}\r"
-    chmod ${rmode} "${(Q)rfile}" 2> /dev/null > /dev/null && echo -e "[++]" || echo -e "[!!]"
+    chmod ${rmode} "${(Q)rfile}" 2> /dev/null > /dev/null && echo -e "[##]" || echo -e "[!!]"
   fi
 done
 popd
