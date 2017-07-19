@@ -81,14 +81,6 @@ for opt in ${(@k)dynload_data}; do
 done
 
 
-### libraries
-## load libraries
-dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/libs" 0
-for lib in ${(@k)dynload_data}; do
-  source "${ZDOTDIR:-${HOME}}/.zshrc.d/libs/${lib}"
-done
-
-
 ### cmdlets
 ## dynamically load extra functions/cmdlets
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 2

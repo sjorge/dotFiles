@@ -33,7 +33,6 @@ PERM["homedir/.zshrc.d/envvars/os:linux:PATH"]=100700
 PERM["homedir/.zshrc.d/envvars/os:openbsd:PKG_PATH"]=100700
 PERM["homedir/.zshrc.d/envvars/os:solaris:MANPATH"]=100700
 PERM["homedir/.zshrc.d/envvars/os:solaris:PATH"]=100700
-PERM["homedir/.zshrc.d/libs/git"]=100644
 PERM["homedir/.zshrc.d/options/auto_cd"]=100600
 PERM["homedir/.zshrc.d/options/auto_param_slash"]=100600
 PERM["homedir/.zshrc.d/options/auto_pushd"]=100600
