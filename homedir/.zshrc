@@ -227,11 +227,17 @@ bindkey -M vicmd "^r"    history-incremental-search-backward
 bindkey " " magic-space # becasue I am lazy
 bindkey "\e[Z" reverse-menu-complete # Shift+Tab
 
+
+### local customizations
+## NOTE: we load zlocal BEFORE theming so any custom variables can take effect
+[ -r "${ZDOTDIR:-${HOME}}/.zlocal" ] && source "${ZDOTDIR:-${HOME}}/.zlocal"
+
+
 ### themes
 ## enable theme support
 autoload -U colors && colors
 autoload -Uz promptinit && promptinit
-THEME="${THEME:-gentoo}"
+PROMPT_THEME="${PROMPT_THEME:-gentoo}"
 prompt_themes=()
 
 ## load themes
@@ -244,12 +250,8 @@ for pcfg in ${(@k)dynload_data}; do
 done
 
 ## enable theme
-[[ -n "${prompt_themes[(r)${THEME}]}" ]] && prompt "${THEME}"
-unset THEME
-
-
-### local customizations
-[ -r "${ZDOTDIR:-${HOME}}/.zlocal" ] && source "${ZDOTDIR:-${HOME}}/.zlocal"
+[[ -n "${prompt_themes[(r)${PROMPT_THEME}]}" ]] && prompt "${PROMPT_THEME}"
+unset PROMPT_THEME
 
 
 ### global helpers (cleanup)

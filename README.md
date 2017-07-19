@@ -20,7 +20,8 @@ My personal dotFiles repository, somethings will be encrypted.
     - [X] cmdlets :: autoloading of shell functions
     - [X] aliases :: autoloading of aliases
     - [X] options :: auto set/unset of zsh options
-    - [ ] themes  :: zsh themes
+    - [X] themes  :: zsh themes
+      - [ ] expand dual theme with git and vi mode indicators
   - [ ] cerberus replacement using cmdlet
     - [ ] wrapper for ssh/scp/...
     - [ ] add ``site`` support (symlink default -> prefered site)
