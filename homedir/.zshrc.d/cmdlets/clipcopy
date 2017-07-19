@@ -1,10 +1,11 @@
 #### cmdlet for copying to the clipboard
-# clipcopy - Copy data to clipboard
-# https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/clipboard.zsh
-#
-# Usage:
-#  <command> | clipcopy    - copies stdin to clipboard
-#  clipcopy <file>         - copies a file's contents to clipboard
+## clipcopy - Copy data to clipboard
+## https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/clipboard.zsh
+##
+## Usage:
+##  <command> | clipcopy    - copies stdin to clipboard
+##  clipcopy <file>         - copies a file's contents to clipboard
+
 function clipcopy() {
   emulate -L zsh
   local file=$1

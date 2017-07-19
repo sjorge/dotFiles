@@ -1,4 +1,5 @@
 #### cmdlet for connecting to a vnc server on macOS
+
 vnc() {
   if which -p vncviewer 2> /dev/null > /dev/null; then
     vncviewer $@

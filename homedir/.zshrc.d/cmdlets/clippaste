@@ -1,11 +1,12 @@
 #### cmdlet for pasting form the clipboard
-# clippaste - "Paste" data from clipboard to stdout
-# https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/clipboard.zsh
-#
-# Usage:
-#   clippaste   - writes clipboard's contents to stdout
-#   clippaste | <command>    - pastes contents and pipes it to another process
-#   clippaste > <file>      - paste contents to a file
+## clippaste - "Paste" data from clipboard to stdout
+## https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/clipboard.zsh
+##
+## Usage:
+##   clippaste   - writes clipboard's contents to stdout
+##   clippaste | <command>    - pastes contents and pipes it to another process
+##   clippaste > <file>      - paste contents to a file
+
 function clippaste() {
   emulate -L zsh
   if [[ $OSTYPE == darwin* ]]; then

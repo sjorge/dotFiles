@@ -2,6 +2,7 @@
 ## NOTE: This is handy for setting zsh as your default shell,
 ##       it will try to do the right thing depending on the
 ##       operating system in use.
+
 ch2zsh() {
   case $OSTYPE in
     linux*|darwin*|openbsd*) chsh -s ${(s: -> :)$(which -ps zsh)[-1]}                                 ;;

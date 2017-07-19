@@ -21,7 +21,7 @@ My personal dotFiles repository, somethings will be encrypted.
     - [X] aliases :: autoloading of aliases
     - [X] options :: auto set/unset of zsh options
     - [X] themes  :: zsh themes
-      - [ ] expand dual theme with git and vi mode indicators
+      - [ ] expand dual theme with git (https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/git.zsh) and vi mode (http://zshwiki.org/home/zle/vi-mode) indicators
   - [ ] cerberus replacement using cmdlet
     - [ ] wrapper for ssh/scp/...
     - [ ] add ``site`` support (symlink default -> prefered site)

@@ -22,6 +22,7 @@ PERM["homedir/.zshrc.d/aliases/weather"]=100600
 PERM["homedir/.zshrc.d/cmdlets/ch2zsh"]=100600
 PERM["homedir/.zshrc.d/cmdlets/clipcopy"]=100644
 PERM["homedir/.zshrc.d/cmdlets/clippaste"]=100644
+PERM["homedir/.zshrc.d/cmdlets/man"]=100644
 PERM["homedir/.zshrc.d/cmdlets/os:darwin:pkgsrc-audit"]=100600
 PERM["homedir/.zshrc.d/cmdlets/os:darwin:vnc"]=100600
 PERM["homedir/.zshrc.d/envvars/EDITOR"]=100600
