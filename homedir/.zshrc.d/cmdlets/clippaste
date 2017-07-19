@@ -1,0 +1,27 @@
+#### cmdlet for pasting form the clipboard
+# clippaste - "Paste" data from clipboard to stdout
+# https://github.com/robbyrussell/oh-my-zsh/blob/master/lib/clipboard.zsh
+#
+# Usage:
+#   clippaste   - writes clipboard's contents to stdout
+#   clippaste | <command>    - pastes contents and pipes it to another process
+#   clippaste > <file>      - paste contents to a file
+function clippaste() {
+  emulate -L zsh
+  if [[ $OSTYPE == darwin* ]]; then
+    pbpaste
+  elif [[ $OSTYPE == cygwin* ]]; then
+    cat /dev/clipboard
+  else
+    if (( $+commands[xclip] )); then
+      xclip -out -selection clipboard
+    elif (( $+commands[xsel] )); then
+      xsel --clipboard --output
+    else
+      print "clipcopy: Platform $OSTYPE not supported or xclip/xsel not installed" >&2
+    return 1
+    fi
+  fi
+}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
