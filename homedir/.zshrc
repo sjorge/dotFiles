@@ -83,17 +83,27 @@ done
 
 ### tab completion
 ## enable completion
+zmodload -i zsh/complist
 autoload -U compinit && compinit
 fpath+=("${ZDOTDIR:-${HOME}}/.zshrc.d/compdef")
+
+## load files not starting with _ as includes
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/compdef" 2
+for comp in ${(@k)dynload_data}; do
+  [[ "${comp}" =~ "^_" ]] && continue
+  source "${dynload_data[$comp]}"
+done
 
 ## enable caching
 zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path ~/.zcache
 
 ## various tweaks
+zstyle ':completion:*:*:*:*:*' menu select
+# NOTE: case sensitive matching
+zstyle ':completion:*' matcher-list 'r:|=*' 'l:|=* r:|=*'
 # NOTE: case insensitive matching
-#zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-
+#zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 
 ### cmdlets
 ## dynamically load extra functions/cmdlets
