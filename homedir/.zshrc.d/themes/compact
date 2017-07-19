@@ -5,9 +5,8 @@
 ## PROMPT_HIGHLIGHT  :: color for prompt
 ## PROMPT_CO         :: char when command exits with 0
 ## PROMPT_CE         :: char when command exits with >0 
-prompt_compact_setup() {
-	PROMPT=$'%{$fg_bold[grey]%}-(%{$reset_color%}%{$fg_bold[white]%}%1~%{$reset_color%}%{$fg_bold[grey]%})-[%{$reset_color%}%(?,%{$fg_bold[green]%}${PROMPT_CO:-.}%{$reset_color%},%{$fg_bold[red]%}${PROMPT_CE:-!}%{$reset_color%})%{$fg_bold[grey]%}]-%{$reset_color%}%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%}){%{$reset_color%} '
-	RPROMPT=$'%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%})}%{$reset_color%}%{$fg_bold[grey]%}-(%{$reset_color%}%{$fg_bold[$PROMPT_HIGHLIGHT]%}%n@%m%{$reset_color%}%{$fg_bold[grey]%})-%{$reset_color%}'
-}
+
+PROMPT=$'%{$fg_bold[grey]%}-(%{$reset_color%}%{$fg_bold[white]%}%1~%{$reset_color%}%{$fg_bold[grey]%})-[%{$reset_color%}%(?,%{$fg_bold[green]%}${PROMPT_CO:-.}%{$reset_color%},%{$fg_bold[red]%}${PROMPT_CE:-!}%{$reset_color%})%{$fg_bold[grey]%}]-%{$reset_color%}%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%}){%{$reset_color%} '
+RPROMPT=$'%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%})}%{$reset_color%}%{$fg_bold[grey]%}-(%{$reset_color%}%{$fg_bold[$PROMPT_HIGHLIGHT]%}%n@%m%{$reset_color%}%{$fg_bold[grey]%})-%{$reset_color%}'
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
