@@ -41,22 +41,22 @@ popd
 ## compare files
 echo "[..] Copying files ..."
 pushd "${TOPDIR}/homedir"
-for file in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -name '*.enc' -prune -o -name '*.swp' -prune -o -type f -print); do
+for file in $(find . -mindepth 1 -type f -name '.DS_Store' -prune -o -name '*.enc' -prune -o -name '*.swp' -prune -o -type f -print -o -type l -print); do
   file=${file[3,-1]}
   pushd "${HOME}"
   echo -ne "[>>]   ${file}\r"
   if [ ! -e "${file}" ]; then
-    cp -p "${TOPDIR}/homedir/${file}" "${file}" && echo -e "[++]" || echo -e "[!!]"
+    cp -p -L "${TOPDIR}/homedir/${file}" "${file}" 2> /dev/null > /dev/null && echo -e "[++]" || echo -e "[!!]"
   else
     if ${DIFFBIN} "${file}" "${TOPDIR}/homedir/${file}" 2> /dev/null > /dev/null; then
       echo -e "[==]"
     elif [ "${FORCE}" -gt 0 ]; then
-      cp -p "${TOPDIR}/homedir/${file}" "${file}" && echo -e "[++]" || echo -e "[!!]"
+      cp -p -L "${TOPDIR}/homedir/${file}" "${file}" 2> /dev/null > /dev/null && echo -e "[++]" || echo -e "[!!]"
     else
       echo -e "[??]"
       eval ${DIFFBIN} ${DIFFARG} "${file}" "${TOPDIR}/homedir/${file}"
       read -q "do_replace?Accept changes? (y/N) " ; echo
-      [[ "${do_replace}" == "y" ]] && cp -p "${TOPDIR}/homedir/${file}" "${file}"
+      [[ "${do_replace}" == "y" ]] && cp -p -L "${TOPDIR}/homedir/${file}" "${file}" 2> /dev/null > /dev/null
     fi
   fi
   popd
@@ -70,7 +70,7 @@ pushd "${TOPDIR}/homedir"
 for dir in $(find . -mindepth 1 -maxdepth 1 -type d -print); do
   pushd "${HOME}"
   dir=${dir[3,-1]}
-  for file in $(find $dir -mindepth 1 -type f -name '.DS_Store' -prune -o -type f -print); do
+  for file in $(find $dir -mindepth 1 -type f -name '.DS_Store' -prune -o -type f -print -o -type l -print); do
     if [ ! -e "${TOPDIR}/homedir/${file}" ] && [ ! -e "${TOPDIR}/homedir/${file}.enc" ]; then
       echo -ne "[>>]  ${file}\r"
       if [ "${FORCE}" -gt 0 ]; then
