@@ -5,6 +5,7 @@ PERM["README.md"]=100600
 PERM["homedir/.vimrc"]=100600
 PERM["homedir/.zshrc"]=100600
 PERM["homedir/.zshrc.d/README"]=100600
+PERM["homedir/.zshrc.d/aliases/history"]=100644
 PERM["homedir/.zshrc.d/aliases/host:tachyon:xld"]=100600
 PERM["homedir/.zshrc.d/aliases/ls"]=100700
 PERM["homedir/.zshrc.d/aliases/minicom"]=100600
