@@ -51,6 +51,7 @@ PERM["homedir/.zshrc.d/options/prompt_subst"]=100600
 PERM["homedir/.zshrc.d/options/pushd_ignore_dups"]=100600
 PERM["homedir/.zshrc.d/options/pushd_silent"]=100600
 PERM["homedir/.zshrc.d/options/pushd_to_home"]=100600
+PERM["homedir/.zshrc.d/tabcomp/legacy"]=100600
 PERM["homedir/.zshrc.d/themes/compact"]=100600
 PERM["homedir/.zshrc.d/themes/dual"]=100600
 PERM["homedir/.zshrc.d/themes/gentoo"]=100600

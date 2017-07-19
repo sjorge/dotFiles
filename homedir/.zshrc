@@ -81,6 +81,14 @@ for opt in ${(@k)dynload_data}; do
 done
 
 
+### tab completion
+## dynamically completion rules
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/tabcomp/" 2
+for tc in ${(@k)dynload_data}; do
+  source "${dynload_data[$tc]}"
+done
+
+
 ### cmdlets
 ## dynamically load extra functions/cmdlets
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 2
@@ -256,186 +264,5 @@ unset PROMPT_THEME
 
 ### global helpers (cleanup)
 unfunction dynload
-
-##### LEGACY CLEAN UP BELOW ######
-# {{{ auto completion
-    ## base
-    autoload -U compinit && compinit
-
-    ## complete from withing word
-    setopt complete_in_word
-    setopt always_to_end
-
-    ## complete aliases
-    setopt complete_aliases
-
-    ## enable caching
-    zstyle ':completion::complete:*' use-cache on
-    zstyle ':completion::complete:*' cache-path ~/.zcache
-    
-    ## enable case-insensitive completion
-    zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-    
-    ## various tweaks
-    zstyle '*' single-ignored show
-    
-    zstyle ':completion:*' completer _complete _match _approximate
-    zstyle ':completion:*:match:*' original only
-    zstyle ':completion:*:approximate:*' max-errors 1 numeric
-    
-    zstyle -e ':completion:*:approximate:*' max-errors 'reply=($((($#PREFIX+$#SUFFIX)/3))numeric)'
-    
-    ## history
-    zstyle ':completion:*:history-words' stop yes
-    zstyle ':completion:*:history-words' remove-all-dups yes
-    zstyle ':completion:*:history-words' list false
-    zstyle ':completion:*:history-words' menu yes
-    
-    ## directories
-    zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
-    zstyle ':completion:*:*:cd:*' tag-order local-directories directory-stack path-directories
-    zstyle ':completion:*:*:cd:*:directory-stack' menu yes select
-    zstyle ':completion:*:-tilde-:*' group-order 'named-directories' 'path-directories' 'users' 'expand'
-    zstyle ':completion:*' squeeze-slashes true
-    
-    ## ignore completions for commands that we dont have
-    zstyle ':completion:*:functions' ignored-patterns '(_*|pre(cmd|exec))'
-    
-    ## array completion
-    zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
-    
-    ## group matches and describe
-    zstyle ':completion:*:*:*:*:*' menu select
-    zstyle ':completion:*:matches' group 'yes'
-    zstyle ':completion:*:options' description 'yes'
-    zstyle ':completion:*:options' auto-description '%d'
-    zstyle ':completion:*:corrections' format ' %F{green}-- %d (errors: %e) --%f'
-    zstyle ':completion:*:descriptions' format ' %F{yellow}-- %d --%f'
-    zstyle ':completion:*:messages' format ' %F{purple} -- %d --%f'
-    zstyle ':completion:*:warnings' format ' %F{red}-- no matches found --%f'
-    zstyle ':completion:*:default' list-prompt '%S%M matches%s'
-    zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
-    zstyle ':completion:*' group-name ''
-    zstyle ':completion:*' verbose yes
-    
-    ## pretty menu's
-    zstyle ':completion:*' menu select=1
-    zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-    #setopt auto_menu    # show menu on 2nd <tab>
-    setopt auto_list
-    #setopt list_rows_first  # use row list if possible
-
-    ## prevent re-suggestion
-    zstyle ':completion:*:(scp|rm|kill|diff):*' ignore-line yes
-    #zstyle ':completion:*:rm:*' file-patterns '*:all-files'
-
-    ## enable killall menu (linux)
-    zstyle ':completion:*:processes-names' command 'ps -u $(whoami) -o comm='
-    zstyle ':completion:*:processes-names' menu yes select
-    zstyle ':completion:*:processes-names' force-list always    
-
-    ## enable kill menu (linux)   
-    case $OSTYPE in 
-        linux*|darwin*|openbsd*)
-            if [ $(id -u) -eq 0 ]; then
-                zstyle ':completion:*:*:*:*:processes' command 'ps -A -o pid,user,pcpu,pmem,args -w'
-            else
-                zstyle ':completion:*:*:*:*:processes' command 'ps -u $(whoami) -o pid,user,pcpu,pmem,args -w'
-            fi
-        ;;
-        solaris*)
-            if [ $(id -u) -eq 0 ]; then
-                zstyle ':completion:*:*:*:*:processes' command 'ps -A -o pid,user,pcpu,pmem,args'
-            else
-                zstyle ':completion:*:*:*:*:processes' command 'ps -u $(whoami) -o pid,user,pcpu,pmem,args'
-            fi
-        ;;
-    esac
-    zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;32'
-    zstyle ':completion:*:*:kill:*' menu yes select
-    zstyle ':completion:*:*:kill:*' force-list always
-    zstyle ':completion:*:*:kill:*' insert-ids single
-    
-    ## simple pargs complete
-    case $OSTYPE in 
-        solaris*)
-            compdef _pids pargs
-            zstyle ':completion:*:*:pargs:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;32'
-            zstyle ':completion:*:*:pargs:*' menu yes select
-            zstyle ':completion:*:*:pargs:*' force-list always
-            zstyle ':completion:*:*:pargs:*' insert-ids single
-        ;;
-    esac
-    
-    ## man pages
-    zstyle ':completion:*:manuals' separate-sections true
-    zstyle ':completion:*:manuals.(^1*)' insert-sections true
-
-    ## enable make completion
-    compile=(all clean compile disclean install remove uninstall)
-    compctl -k compile make
-    
-    ## user completion cleanup
-    zstyle ':completion:*:*:*:users' ignored-patterns \
-        adm amanda apache avahi backup beaglidx bin cacti canna clamav daemon \
-        dladm dbus distcache dovecot fax ftp games gdm gkrellmd gopher gnats \
-        hacluster haldaemon halt hsqldb ident junkbust ldap lp irc list libuuid \
-        listen mdns mail mailman mailnull mldonkey mysql man messagebus \
-        netadm netcfg nagios noaccess nobody4 nuucp \
-        named netdump news nfsnobody nobody nscd ntp nut nx openvpn openldap \
-        operator pcap pkg5srv postfix postgres proxy privoxy pulse pvm quagga radvd \
-        rpc rpcuser rpm shutdown statd squid sshd sync sys syslog uucp vcsa \
-        smmsp svctag upnp unknown webservd www-data xfs xvm zfssnap '_*'
-        
-    ## hostname completion
-    ## FIXME: is this still wanted?
-    if [ ! -f ~/.ssh/config ]; then
-        [ -f ~/.ssh/known_hosts ] && rm ~/.ssh/known_hosts
-        mkdir -p ~/.ssh
-        echo "HashKnownHosts no" >>! ~/.ssh/config
-        chmod 0600 ~/.ssh/config
-    fi
-    zstyle -e ':completion:*:hosts' hosts 'reply=(
-        ${=${=${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) 2>/dev/null)"}%%[#| ]*}//\]:[0-9]*/ }//,/ }//\[/ }
-        ${=${(f)"$(cat /etc/hosts(|)(N) <<(ypcat hosts 2>/dev/null))"}%%\#*}
-        ${=${${${${(@M)${(f)"$(cat ~/.ssh/config 2>/dev/null)"}:#Host *}#Host }:#*\**}:#*\?*}}
-    )'
-
-    ## ssh/scp/rsync
-    zstyle ':completion:*:(scp|rsync):*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
-    zstyle ':completion:*:(scp|rsync):*' group-order users files all-files hosts-domain hosts-host hosts-ipaddr
-    zstyle ':completion:*:ssh:*' tag-order 'hosts:-host:host hosts:-domain:domain hosts:-ipaddr:ip\ address *'
-    zstyle ':completion:*:ssh:*' group-order users hosts-domain hosts-host users hosts-ipaddr
-    zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' loopback ip6-loopback localhost ip6-localhost ip6-allnodes ip6-allrouters ip6-localnet ip6-mcastprefix broadcasthost
-    zstyle ':completion:*:(ssh|scp|rsync):*:hosts-domain' ignored-patterns '<->.<->.<->.<->' '^[-[:alnum:]]##(.[-[:alnum:]]##)##' '*@*'
-    zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<->.<->.<->|(|::)([[:xdigit:].]##:(#c,2))##(|%*))' '127.0.0.<->' '255.255.255.255' '::1' 'fe80::*' 'fe00::*' 'ff00::*' 'ff02::*'
-
-    ## mosh
-    compdef mosh=ssh
-# }}}
-
-# {{{ auto correction
-    ## disable auto correct
-    #alias cd='nocorrect cd'
-    #alias cp='nocorrect cp'
-    #alias gcc='nocorrect gcc'
-    #alias grep='nocorrect grep'
-    #alias ln='nocorrect ln'
-    #alias man='nocorrect man'
-    #alias mkdir='nocorrect mkdir'
-    #alias mv='nocorrect mv'
-    #alias rm="nocorrect ${aliases[rm]:-rm}"
-    #which sshpass &> /dev/null ; [ $? -eq 0 ] && alias sshpass='nocorrect sshpass'
-    
-    ## disable globbing.
-    #alias find='noglob find'
-    #alias ftp='noglob ftp'
-    #alias history='noglob history'
-    #alias locate='noglob locate'
-    #alias rsync='noglob rsync'
-    #alias scp='noglob scp'
-    #alias sftp='noglob sftp'
-    #alias ssh='noglob ssh'
-# }}}
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
