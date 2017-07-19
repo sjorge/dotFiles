@@ -1,0 +1,15 @@
+### theme - dual
+## Double line theme
+##
+## Support variables:
+## PROMPT_HIGHLIGHT  :: color for prompt
+## PROMPT_CO         :: char when command exits with 0
+## PROMPT_CE         :: char when command exits with >0 
+
+prompt_dual_setup() {
+	PROMPT=$'%{$fg_bold[grey]%}[%{$fg_bold[$PROMPT_HIGHLIGHT]%}%m %{$fg_bold[grey]%}:: %(!.%{$fg_bold[red]%}.%{$fg_bold[green]%})%n%{$fg_bold[grey]%}][%{$fg_bold[white]%}%~%{$fg_bold[grey]%}]\n[%(?,%{$fg_bold[green]%}${PROMPT_CO:-.}%{$reset_color%},%{$fg_bold[red]%}${PROMPT_CE:-!}%{$reset_color%})%{$fg_bold[grey]%}]%(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}$)%{$reset_color%} '
+	RPROMPT=''
+}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
+

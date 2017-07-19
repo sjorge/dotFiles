@@ -2,7 +2,7 @@
 ## Jorge Schrauwen <jorge@blackdot.be>
 ####
 
-### helpers
+### global helpers
 typeset -A dynload_data
 function dynload() {
   local s_dir=${@[1]}
@@ -81,26 +81,11 @@ for opt in ${(@k)dynload_data}; do
 done
 
 
-### keybindings
-## enable vi-mode
-KEYTIMEOUT=2
-bindkey -v
-bindkey -M viins "^r" history-incremental-search-backward
-bindkey -M viins "^?" backward-delete-char
-bindkey -M viins "^h" backward-delete-char
-bindkey -M vicmd "^r" history-incremental-search-backward
-bindkey -M vicmd "^?" backward-delete-char
-bindkey -M vicmd "^h" backward-delete-char
-bindkey " " magic-space # becasue I am lazy
-
-## generic tweaks
-bindkey "\e[Z" reverse-menu-complete # Shift+Tab
-
-
 ### cmdlets
 ## dynamically load extra functions/cmdlets
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 2
 for cmd in ${(@k)dynload_data}; do
+  # NOTE: we do not use autoload, because need filtering
   eval "${cmd}() { source "${dynload_data[$cmd]}"; ${cmd} \$@ }"
 done
 
@@ -124,88 +109,153 @@ done
 
 
 ### colorization
-## os specfic handling
-case $OSTYPE in
-  linux*)
-    eval $(dircolors)
-    [ -r /etc/DIR_COLORS ] && eval $(dircolors -b /etc/DIR_COLORS)
-    [ -r ~/.dir_colors ]   && eval $(dircolors -b ~/.dir_colors)
+## BSD compatible
+[[ "${OSTYPE}" =~ "^solaris|^darwin|^freebsd|^linux" ]] && export CLICOLOR=1
 
-    if [ -n "${LS_COLORS}" ]; then
-      export CLICOLOR=1
-      alias ls="${aliases[ls]:-ls} --color=auto"
-      alias grep="${aliases[grep]:-grep} --color=auto"
-      alias diff="${aliases[diff]:-diff} --color=auto"
-    fi
-  ;;
-  darwin*|solaris*)
-    export CLICOLOR=1
+## dircolors
+if which -ps dircolors 2> /dev/null > /dev/null; then
+  dircolor_configs=()
+  dircolor_configs+=("/etc/DIR_COLORS")
+  if dircolor_configs_pkgsrc=$(pkg_info -Q PKG_SYSCONFDIR coreutils 2> /dev/null); then
+    dircolor_configs+=("${dircolor_configs_pkgsrc}/DIR_COLORS")
+  fi
+  dircolor_configs+=("~/.dir_colors")
 
-    if which -ps dircolors 2> /dev/null > /dev/null; then
-      eval $(dircolors)
-      [ -r /etc/DIR_COLORS ] && eval $(dircolors -b /etc/DIR_COLORS)
-      [ -r ~/.dir_colors ]   && eval $(dircolors -b ~/.dir_colors)
-    fi
+  for dcconf in ${dircolor_configs}; do
+    [ -r "${dcconf}" ] && eval $(dircolors -b "${dcconf}")
+  done
+  [ -z "${LS_COLORS}" ] && eval $(dircolors -b)
+fi
 
-    ## check for gnu binaries
-    for gnubin_name in ls grep diff; do
-      ## check for gnu binaries
-      which -ps "g${gnubin_name}" 2> /dev/null > /dev/null && \
-        alias "g${gnubin_name}"="${aliases[g${gnubin_name}]:-g${gnubin_name}} --color=auto"
-
-      ## check for symlinks to gnu versions
-      gnubin_path=${(s# -> #)$(which -ps ${gnubin_name})[-1]}
-      case "${gnubin_path}" in
-        /opt/local/gnu/bin/${gnubin_name}) # NOTE: pkgsrc_SmartOS
-          is_gnu_bin=1
-        ;;
-        /usr/gnu/bin/${gnubin_name})       # NOTE: OmniOS/OpenIndiana
-          is_gnu_bin=1
-        ;;
-        /(usr|opt)/pkg/bin/g${gnubin_name}) # NOTE: pkgsrc_macOS
-          is_gnu_bin=1
-        ;;
-        *)
-          is_gnu_bin=0
-        ;;
-      esac
-      [ "${is_gnu_bin}" -gt 0 ] && alias ${gnubin_name}="${aliases[${gnubin_name}]:-${gnubin_name}} --color=auto"
+## gnuls
+ls_test_option() { $(which -ps ${2:-ls}) ${1} 2> /dev/null > /dev/null }
+ls_wanted_options=("--color=auto" "--group-directories-first" "--quoting-style=literal")
+for lbin in ls gls; do
+  if which -ps ${lbin} 2> /dev/null > /dev/null; then
+    for lopt in ${ls_wanted_options}; do
+      ls_test_option ${lopt} ${lbin} && alias ${lbin}="${aliases[${lbin}]:-${lbin}} ${lopt}"
     done
-  ;;
-  openbsd*)
-    export CLICOLOR=1
-    [ -e /usr/local/bin/colorls ] && alias ls='/usr/local/bin/colorls -G'
-  ;;
-esac
+  fi
+done
+unset ls_wanted_options
+unfunction ls_test_option
 
-### helpers (cleanup)
+## colorls (OpenBSD)
+[[ "${OSTYPE}" =~ "^openbsd" ]] && [ -e /usr/local/bin/colorls ] && alias ls='/usr/local/bin/colorls -G'
+
+## grep
+grep_test_option() { echo | $(which -ps ${2:-grep}) ${1} "" >/dev/null 2> /dev/null  }
+grep_wanted_options=("--color=auto" "--exclude-dir="{.bzr,.cvs,.git,.hg,.svn}"")
+for gbin in grep ggrep; do
+  for gopt in ${grep_wanted_options}; do
+    grep_test_option ${gopt} ${gbin} && alias ${gbin}="${aliases[${gbin}]:-${gbin}} ${gopt}"
+  done
+done
+unset grep_wanted_options
+unfunction grep_test_option
+
+## diff
+diff_test_option() { echo -n | $(which -ps ${2:-diff}) ${1} - - >/dev/null 2> /dev/null  }
+diff_wanted_options=("--color=auto")
+for dbin in diff gdiff; do
+  for dopt in ${diff_wanted_options}; do
+    diff_test_option ${dopt} ${dbin} && alias ${dbin}="${aliases[${dbin}]:-${dbin}} ${dopt}"
+  done
+done
+unset diff_wanted_options
+unfunction diff_test_option
+
+
+### advanced zle
+## enable escaping of urls
+if [[ ${ZSH_VERSION//\./} -ge 420 ]] ; then
+  autoload -Uz url-quote-magic
+  zle -N self-insert url-quote-magic
+fi
+
+## handle bracketed pasting
+if [[ ${ZSH_VERSION//\./} -gt 511 ]] ; then
+	if [[ ${TERM} == "dumb" ]]; then
+		unset zle_bracketed_paste
+  else
+		autoload -Uz bracketed-paste-magic
+		zle -N bracketed-paste bracketed-paste-magic
+	fi
+fi
+
+## allow for easy sudo/pfexec
+super-do-command() {
+  # grab buf from history of emtpy
+	[[ -z "${BUFFER}" ]] && zle up-history
+
+	# drop sudo/pfexec
+	if [[ "${BUFFER}" == pfexec\ * ]]; then
+		LBUFFER="${LBUFFER#pfexec }"
+	elif [[ "${BUFFER}" == sudo\ * ]]; then
+		LBUFFER="${LBUFFER#sudo }"
+	elif [[ "${BUFFER}" == ${EDITOR}\ * ]]; then
+		LBUFFER="${LBUFFER#${EDITOR} }"
+		LBUFFER="sudoedit $LBUFFER"
+	elif [[ "${BUFFER}" == sudoedit\ * ]]; then
+		LBUFFER="${LBUFFER#sudoedit }"
+		LBUFFER="${EDITOR} $LBUFFER"
+  elif [[ "${OSTYPE}" =~ "^solaris" ]]; then
+		LBUFFER="pfexec $LBUFFER"
+	else
+		LBUFFER="sudo $LBUFFER"
+	fi
+}
+zle -N super-do-command
+
+
+### keybindings
+## enable vi-mode
+KEYTIMEOUT=2
+bindkey -v
+## vi insert mode
+bindkey -M viins "^?"    backward-delete-char
+bindkey -M viins "^H"    backward-delete-char
+bindkey -M viins "^[[3~" delete-char # macOS Fn+Delete
+## vi normal mode
+bindkey -M vicmd "^?"    backward-delete-char
+bindkey -M vicmd "^H"    backward-delete-char
+bindkey -M vicmd "^[[3~" delete-char # macOS Fn+Delete
+bindkey -M vicmd "!"     super-do-command
+bindkey -M vicmd "^r"    history-incremental-search-backward
+
+## generic tweaks
+bindkey " " magic-space # becasue I am lazy
+bindkey "\e[Z" reverse-menu-complete # Shift+Tab
+
+### themes
+## enable theme support
+autoload -U colors && colors
+autoload -Uz promptinit && promptinit
+THEME="${THEME:-gentoo}"
+prompt_themes=()
+
+## load themes
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/themes" 2
+for pcfg in ${(@k)dynload_data}; do
+  source "${dynload_data[$pcfg]}"
+  if which "prompt_${pcfg}_setup" 2> /dev/null > /dev/null; then
+     prompt_themes+=("${pcfg}")
+  fi
+done
+
+## enable theme
+[[ -n "${prompt_themes[(r)${THEME}]}" ]] && prompt "${THEME}"
+unset THEME
+
+
+### local customizations
+[ -r "${ZDOTDIR:-${HOME}}/.zlocal" ] && source "${ZDOTDIR:-${HOME}}/.zlocal"
+
+
+### global helpers (cleanup)
 unfunction dynload
 
 ##### LEGACY CLEAN UP BELOW ######
-# {{{ advanced
-    ## fix url quote's
-    if [[ ${ZSH_VERSION//\./} -ge 420 ]] ; then
-         autoload -U url-quote-magic
-         zle -N self-insert url-quote-magic
-    fi
-
-    ## host specific
-    ## FIXME: move me to somewhere else
-    case ${HOST:r} in
-        (axion*|tachyon*|photon*)
-            # host color
-            #PROMPT_HOST_COLOR=green
-        ;;
-        (exosphere*|crust*)
-            PROMPT_HOST_COLOR=red
-        ;;
-        *)
-            # default host color
-            PROMPT_HOST_COLOR=blue
-        ;;  
-    esac
-# }}}
-
 # {{{ auto completion
     ## base
     autoload -U compinit && compinit
@@ -357,6 +407,9 @@ unfunction dynload
     zstyle ':completion:*:(ssh|scp|rsync):*:hosts-host' ignored-patterns '*(.|:)*' loopback ip6-loopback localhost ip6-localhost ip6-allnodes ip6-allrouters ip6-localnet ip6-mcastprefix broadcasthost
     zstyle ':completion:*:(ssh|scp|rsync):*:hosts-domain' ignored-patterns '<->.<->.<->.<->' '^[-[:alnum:]]##(.[-[:alnum:]]##)##' '*@*'
     zstyle ':completion:*:(ssh|scp|rsync):*:hosts-ipaddr' ignored-patterns '^(<->.<->.<->.<->|(|::)([[:xdigit:].]##:(#c,2))##(|%*))' '127.0.0.<->' '255.255.255.255' '::1' 'fe80::*' 'fe00::*' 'ff00::*' 'ff02::*'
+
+    ## mosh
+    compdef mosh=ssh
 # }}}
 
 # {{{ auto correction
@@ -381,73 +434,6 @@ unfunction dynload
     #alias scp='noglob scp'
     #alias sftp='noglob sftp'
     #alias ssh='noglob ssh'
-# }}}
-
-# {{{ prompt
-    ## FIXME: move to somewhere else
-    ## drop some old ones and add newish ones inspired by https://github.com/robbyrussell/oh-my-zsh/wiki/External-themes
-
-    source ~/.zlocal
-
-    ## enable colors and prompt module
-    autoload -U colors && colors
-    autoload -Uz promptinit && promptinit
-
-    ## checkmarks
-    PROMPT_CO='.'
-    PROMPT_CE='!'
-
-    ## create themes
-    prompt_gentoo_setup() {
-        PROMPT='%(!.%{$fg_bold[red]%}.%{$fg_bold[green]%}%n@)%m %{$fg_bold[blue]%}%(!.%1~.%~) %#%{$reset_color%} '
-        RPROMPT=''
-    }
-    prompt_themes=($prompt_themes gentoo)
-    
-    prompt_gentoo_server_setup() {
-        PROMPT='%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%}%n@)%m %{$fg_bold[blue]%}%(!.%1~.%~) %#%{$reset_color%} '
-        RPROMPT=''
-    }
-    prompt_themes=($prompt_themes gentoo_server)
-
-    prompt_compact_setup() {
-        PROMPT=$'%{$fg_bold[grey]%}-(%{$reset_color%}%{$fg_bold[white]%}%1~%{$reset_color%}%{$fg_bold[grey]%})-[%{$reset_color%}%(?,%{$fg_bold[green]%}$PROMPT_CO%{$reset_color%},%{$fg_bold[red]%}$PROMPT_CE%{$reset_color%})%{$fg_bold[grey]%}]-%{$reset_color%}%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%}){%{$reset_color%} '
-        RPROMPT=$'%(!.%{$fg_bold[red]%}.%{$fg_bold[yellow]%})}%{$reset_color%}%{$fg_bold[grey]%}-(%{$reset_color%}%{$fg_bold[$PROMPT_HOST_COLOR]%}%n@%m%{$reset_color%}%{$fg_bold[grey]%})-%{$reset_color%}'
-    }
-    prompt_themes=($prompt_themes compact)
-    
-    prompt_dual_setup() {
-        PROMPT=$'%{$fg_bold[grey]%}[%{$fg_bold[$PROMPT_HOST_COLOR]%}%m %{$fg_bold[grey]%}:: %(!.%{$fg_bold[red]%}.%{$fg_bold[green]%})%n%{$fg_bold[grey]%}][%{$fg_bold[white]%}%~%{$fg_bold[grey]%}]\n[%(?,%{$fg_bold[green]%}$PROMPT_CO%{$reset_color%},%{$fg_bold[red]%}$PROMPT_CE%{$reset_color%})%{$fg_bold[grey]%}]%(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}$)%{$reset_color%} '
-        RPROMPT=''
-    }   
-    prompt_themes=($prompt_themes dual)
-    
-    prompt_developer_setup() {
-        _developer_git() { 
-            git status 2> /dev/null > /dev/null
-            if [ $? -eq 0 ]; then
-                BRANCH=${$(git symbolic-ref HEAD 2> /dev/null)#refs/heads/}
-                if [[ -n $BRANCH ]]; then
-                    STATUS=$(git status --porcelain 2> /dev/null | tail -n1)
-                    if [[ -n $STATUS ]]; then
-                        git_color=$fg_bold[red]
-                    else
-                        git_color=$fg_bold[green]
-                    fi
-                    echo "%{$fg_bold[grey]%} :: %{$fg_bold[white]%}${BRANCH}%{${git_color}#%{$fg_bold[grey]%}"
-                fi
-            fi
-        }
-    
-        PROMPT=$'%{$fg_bold[grey]%}[%{$fg_bold[$PROMPT_HOST_COLOR]%}%m %{$fg_bold[grey]%}:: %(!.%{$fg_bold[red]%}.%{$fg_bold[green]%})%n%{$fg_bold[grey]%}][%{$fg_bold[white]%}%~%{$fg_bold[grey]%}$(_developer_git)]\n[%(?,%{$fg_bold[green]%}$PROMPT_CO%{$reset_color%},%{$fg_bold[red]%}$PROMPT_CE%{$reset_color%})%{$fg_bold[grey]%}]%(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}$)%{$reset_color%} '
-        RPROMPT=''
-    }   
-    prompt_themes=($prompt_themes developer)
-    
-    ## enable theme
-    [[ -z $THEME ]] && THEME=compact
-    prompt $THEME
-    unset THEME
 # }}}
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
