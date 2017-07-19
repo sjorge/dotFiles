@@ -82,11 +82,17 @@ done
 
 
 ### tab completion
-## dynamically completion rules
-dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/tabcomp/" 2
-for tc in ${(@k)dynload_data}; do
-  source "${dynload_data[$tc]}"
-done
+## enable completion
+autoload -U compinit && compinit
+fpath+=("${ZDOTDIR:-${HOME}}/.zshrc.d/compdef")
+
+## enable caching
+zstyle ':completion::complete:*' use-cache on
+zstyle ':completion::complete:*' cache-path ~/.zcache
+
+## various tweaks
+# NOTE: case insensitive matching
+#zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 
 
 ### cmdlets
