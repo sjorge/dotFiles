@@ -11,7 +11,7 @@ function dynload() {
 
   [[ ! -d "${s_dir}/" ]] && return
 
-  for fn_entry in "${s_dir}"/*; do
+  for fn_entry in "${s_dir}"/*(.N); do
     e_name="${${(s#/#)fn_entry}[-1]}"
     if [[ "${e_name}" =~ "^.*:.*:.*$" ]]; then  # detect filter
       e_name=(${(s#:#)e_name})
