@@ -99,6 +99,7 @@ zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path ~/.zcache
 
 ## various tweaks
+zstyle '*' single-ignored show
 zstyle ':completion:*:*:*:*:*' menu select
 # NOTE: case sensitive matching
 zstyle ':completion:*' matcher-list 'r:|=*' 'l:|=* r:|=*'
