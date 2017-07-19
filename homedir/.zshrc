@@ -75,8 +75,8 @@ done
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/options/" 0
 for opt in ${(@k)dynload_data}; do
   case "${opt}" in
-    no_*)   unset ${opt:3} ;;
-    *)      setopt ${opt}  ;;
+    no_*)   unsetopt ${opt:3} ;;
+    *)      setopt ${opt}     ;;
   esac
 done
 
