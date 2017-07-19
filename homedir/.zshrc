@@ -81,6 +81,14 @@ for opt in ${(@k)dynload_data}; do
 done
 
 
+### libraries
+## load libraries
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/libs" 0
+for lib in ${(@k)dynload_data}; do
+  source "${ZDOTDIR:-${HOME}}/.zshrc.d/libs/${lib}"
+done
+
+
 ### cmdlets
 ## dynamically load extra functions/cmdlets
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/cmdlets" 2
@@ -244,7 +252,6 @@ prompt_themes=()
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/themes" 2
 for pcfg in ${(@k)dynload_data}; do
   eval "prompt_${pcfg}_setup() { source "${dynload_data[$pcfg]}"  }"
-  #source "${dynload_data[$pcfg]}"
   if which "prompt_${pcfg}_setup" 2> /dev/null > /dev/null; then
      prompt_themes+=("${pcfg}")
   fi
