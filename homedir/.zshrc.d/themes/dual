@@ -8,7 +8,7 @@
 ## PROMPT_CE         :: char when command exits with >0 (!)
 
 ## prompt
-PROMPT=$'%{$fg_bold[grey]%}[%{$fg_bold[$(prompt_dual_helper_hostname)]%}%m %{$fg_bold[grey]%}:: %(!.%{$fg_bold[red]%}.%{$fg_bold[green]%})%n%{$fg_bold[grey]%}][%{$fg_bold[white]%}%~%{$fg_bold[grey]%}]\n[%(?,%{$fg_bold[green]%}${PROMPT_CO:-.}%{$reset_color%},%{$fg_bold[red]%}${PROMPT_CE:-!}%{$reset_color%})%{$fg_bold[grey]%}]$(prompt_dual_helper_git_info)%(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}$(prompt_dual_helper_vimode))%{$reset_color%} '
+PROMPT=$'%{$fg_bold[grey]%}[%{$fg_bold[$(prompt_dual_helper_hostname)]%}%m %{$fg_bold[grey]%}:: %(!.%{$fg_bold[red]%}.%{$fg_bold[green]%})%n%{$fg_bold[grey]%}][%{$fg_bold[white]%}%~%{$fg_bold[grey]%}]$(prompt_dual_helper_git_info)\n%{$fg_bold[grey]%}[%(?,%{$fg_bold[green]%}${PROMPT_CO:-.}%{$reset_color%},%{$fg_bold[red]%}${PROMPT_CE:-!}%{$reset_color%})%{$fg_bold[grey]%}]%(!.%{$fg_bold[red]%}#.%{$fg_bold[green]%}$(prompt_dual_helper_vimode))%{$reset_color%} '
 RPROMPT=''
 
 ## hostname helper
