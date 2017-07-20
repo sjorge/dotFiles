@@ -270,6 +270,19 @@ bindkey -M vicmd "^[[3~" delete-char # macOS Fn+Delete
 bindkey -M vicmd "!"     super-do-command
 bindkey -M vicmd "^r"    history-incremental-search-backward
 
+## zle hooks
+zle-keymap-select() {
+  # NOTE: trigger a prompt reset on vi-mode change
+  () { return $__prompt_status }
+  zle reset-prompt
+}
+zle-line-init() {
+  # NOTE: store current exit code
+  typeset -g __prompt_status="$?"
+}
+zle -N zle-keymap-select
+zle -N zle-line-init
+
 ## generic tweaks
 bindkey " " magic-space # becasue I am lazy
 bindkey "\e[Z" reverse-menu-complete # Shift+Tab
