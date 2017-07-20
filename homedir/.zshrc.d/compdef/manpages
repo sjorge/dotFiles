@@ -1,8 +1,4 @@
-#### completion options for man
-## we want to see sections
-
-## FIXME: not showing menu with sections
-#zstyle ':completion:*:manuals' menu select=1
+# NOTE: group manuals by section
 zstyle ':completion:*:manuals' separate-sections true
 #zstyle ':completion:*:manuals.(^1*)' insert-sections true
 

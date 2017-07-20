@@ -1,0 +1,4 @@
+# NOTE: ignore duplicates for some commands
+zstyle ':completion:*:(cp|scp|rm|kill|diff):*' ignore-line yes
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

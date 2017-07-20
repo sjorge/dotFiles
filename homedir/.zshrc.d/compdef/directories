@@ -1,0 +1,6 @@
+# NOTE: order preference
+zstyle ':completion:*:complete:(cd|pushd):*' tag-order 'local-directories directory-stack path-directories'
+# NOTE: use same colors as ls when possible
+zstyle ':completion:*:*:(cd|pushd):*' list-colors ${(s.:.)LS_COLORS}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

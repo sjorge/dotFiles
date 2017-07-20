@@ -1,0 +1,22 @@
+# NOTE: build correct ps command
+ps_cmd=("ps")
+[[ "${UID}" -eq 0 ]] && ps_cmd+=("-A")
+if [[ "${UID}" -gt 0 ]]; then
+  if [[ "${OSTYPE}" =~ "^freebsd" ]]; then
+    ps_cmd+=("-U ${USER}")
+  else
+    ps_cmd+=("-u ${USER}")
+  fi
+fi
+ps_cmd+=("-o pid,user,pcpu,pmem,args")
+[[ ! "${OSTYPE}" =~ "^solaris" ]] && ps_cmd+=("-w")
+
+# NOTE: kill selection menu
+zstyle ':completion:*:*:kill:*:processes' command "${ps_cmd[@]}"
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;32'
+zstyle ':completion:*:*:kill:*' menu yes select
+zstyle ':completion:*:*:kill:*' force-list always
+zstyle ':completion:*:*:kill:*' insert-ids single
+zstyle ':completion:*:*:kill:*' group 'no'
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

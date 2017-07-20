@@ -87,13 +87,6 @@ zmodload -i zsh/complist
 autoload -U compinit && compinit
 fpath+=("${ZDOTDIR:-${HOME}}/.zshrc.d/compdef")
 
-## load files not starting with _ as includes
-dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/compdef" 2
-for comp in ${(@k)dynload_data}; do
-  [[ "${comp}" =~ "^_" ]] && continue
-  source "${dynload_data[$comp]}"
-done
-
 ## enable caching
 zstyle ':completion::complete:*' use-cache on
 zstyle ':completion::complete:*' cache-path ~/.zcache
@@ -101,7 +94,8 @@ zstyle ':completion::complete:*' cache-path ~/.zcache
 ## various tweaks
 zstyle '*' single-ignored show
 # NOTE: menu default
-zstyle ':completion:*' menu select=1
+zstyle ':completion:*:*:*:*:*' menu select
+zstyle ':completion:*' list-colors ''
 zstyle ':completion:*:matches' group 'yes'
 zstyle ':completion:*:options' description 'yes'
 zstyle ':completion:*:options' auto-description '%d'
@@ -113,10 +107,19 @@ zstyle ':completion:*:default' list-prompt '%S%M matches%s'
 zstyle ':completion:*' format ' %F{yellow}-- %d --%f'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' verbose yes
+# NOTE: make foo//bar -> foo/bar
+zstyle ':completion:*' squeeze-slashes true
 # NOTE: case sensitive matching
 zstyle ':completion:*' matcher-list 'r:|=*' 'l:|=* r:|=*'
 # NOTE: case insensitive matching
 #zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+
+## dynamically load extra compdefs
+dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/compdef" 2
+for comp in ${(@k)dynload_data}; do
+  [[ "${comp}" =~ "^_" ]] && continue
+  source "${dynload_data[$comp]}"
+done
 
 ### cmdlets
 ## dynamically load extra functions/cmdlets
@@ -182,7 +185,7 @@ unfunction ls_test_option
 
 ## grep
 grep_test_option() { echo | $(which -ps ${2:-grep}) ${1} "" >/dev/null 2> /dev/null  }
-grep_wanted_options=("--color=auto" "--exclude-dir="{.bzr,.cvs,.git,.hg,.svn}"")
+grep_wanted_options=("--color=auto" "--exclude-dir="{.bzr,CVS,.git,.hg,.svn}"")
 for gbin in grep ggrep; do
   for gopt in ${grep_wanted_options}; do
     grep_test_option ${gopt} ${gbin} && alias ${gbin}="${aliases[${gbin}]:-${gbin}} ${gopt}"
