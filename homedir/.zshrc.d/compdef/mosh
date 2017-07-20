@@ -1,0 +1,4 @@
+# NOTE: parg selection menu
+compdef _ssh ssh
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

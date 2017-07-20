@@ -28,6 +28,7 @@ PERM["homedir/.zshrc.d/cmdlets/os:darwin:vnc"]=100600
 PERM["homedir/.zshrc.d/compdef/directories"]=100600
 PERM["homedir/.zshrc.d/compdef/duplicates"]=100600
 PERM["homedir/.zshrc.d/compdef/manpages"]=100600
+PERM["homedir/.zshrc.d/compdef/mosh"]=100600
 PERM["homedir/.zshrc.d/compdef/processes"]=100600
 PERM["homedir/.zshrc.d/compdef/users"]=100600
 PERM["homedir/.zshrc.d/envvars/EDITOR"]=100600

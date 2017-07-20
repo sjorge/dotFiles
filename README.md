@@ -15,8 +15,7 @@ My personal dotFiles repository, somethings will be encrypted.
 - [ ] .zshrc
   - [X] cleanup
   - [ ] configure LS_COLORS to match macOS ls colorization
-  - [ ] tab completion
-    - [ ] git :: https://github.com/git/git/blob/master/contrib/completion/git-completion.zsh
+  - [X] tab completion
   - [X] create .zshrc.d/ for dynamic configuration
     - [X] envvars :: setting of environment variables
     - [X] cmdlets :: autoloading of shell functions
