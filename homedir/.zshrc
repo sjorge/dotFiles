@@ -85,7 +85,6 @@ done
 ## enable completion
 zmodload -i zsh/complist
 autoload -U compinit && compinit
-fpath+=("${ZDOTDIR:-${HOME}}/.zshrc.d/compdef")
 
 ## enable caching
 zstyle ':completion::complete:*' use-cache on
@@ -115,10 +114,14 @@ zstyle ':completion:*' matcher-list 'r:|=*' 'l:|=* r:|=*'
 #zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
 
 ## dynamically load extra compdefs
+fpath+=("${ZDOTDIR:-${HOME}}/.zshrc.d/compdef")
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/compdef" 2
 for comp in ${(@k)dynload_data}; do
-  [[ "${comp}" =~ "^_" ]] && continue
-  source "${dynload_data[$comp]}"
+  if [[ "${comp}" =~ "^_" ]]; then
+    autoload -Ux "${comp}"
+  else
+    source "${dynload_data[$comp]}"
+  fi
 done
 
 ### cmdlets
