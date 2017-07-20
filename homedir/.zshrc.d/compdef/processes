@@ -17,6 +17,10 @@ zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;32'
 zstyle ':completion:*:*:kill:*' menu yes select
 zstyle ':completion:*:*:kill:*' force-list always
 zstyle ':completion:*:*:kill:*' insert-ids single
-zstyle ':completion:*:*:kill:*' group 'no'
+
+# NOTE: parg selection menu
+
+# NOTE: cleanup
+unset ps_cmd
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
