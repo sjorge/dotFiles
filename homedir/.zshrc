@@ -153,7 +153,7 @@ done
 [[ "${OSTYPE}" =~ "^solaris|^darwin|^freebsd|^linux" ]] && export CLICOLOR=1
 
 ## dircolors
-if which -ps dircolors 2> /dev/null > /dev/null; then
+if which -p dircolors 2> /dev/null > /dev/null; then
   dircolor_configs=()
   dircolor_configs+=("/etc/DIR_COLORS")
   if dircolor_configs_pkgsrc=$(pkg_info -Q PKG_SYSCONFDIR coreutils 2> /dev/null); then
@@ -168,10 +168,10 @@ if which -ps dircolors 2> /dev/null > /dev/null; then
 fi
 
 ## gnuls
-ls_test_option() { $(which -ps ${2:-ls}) ${1} 2> /dev/null > /dev/null }
+ls_test_option() { $(which -p ${2:-ls}) ${1} 2> /dev/null > /dev/null }
 ls_wanted_options=("--color=auto" "--group-directories-first" "--quoting-style=literal")
 for lbin in ls gls; do
-  if which -ps ${lbin} 2> /dev/null > /dev/null; then
+  if which -p ${lbin} 2> /dev/null > /dev/null; then
     for lopt in ${ls_wanted_options}; do
       ls_test_option ${lopt} ${lbin} && alias ${lbin}="${aliases[${lbin}]:-${lbin}} ${lopt}"
     done
@@ -184,23 +184,27 @@ unfunction ls_test_option
 [[ "${OSTYPE}" =~ "^openbsd" ]] && [ -e /usr/local/bin/colorls ] && alias ls='/usr/local/bin/colorls -G'
 
 ## grep
-grep_test_option() { echo | $(which -ps ${2:-grep}) ${1} "" >/dev/null 2> /dev/null  }
+grep_test_option() { echo | $(which -p ${2:-grep}) ${1} "" >/dev/null 2> /dev/null  }
 grep_wanted_options=("--color=auto" "--exclude-dir="{.bzr,CVS,.git,.hg,.svn}"")
 for gbin in grep ggrep; do
-  for gopt in ${grep_wanted_options}; do
-    grep_test_option ${gopt} ${gbin} && alias ${gbin}="${aliases[${gbin}]:-${gbin}} ${gopt}"
-  done
+  if which -p ${gbin} 2> /dev/null > /dev/null; then
+    for gopt in ${grep_wanted_options}; do
+      grep_test_option ${gopt} ${gbin} && alias ${gbin}="${aliases[${gbin}]:-${gbin}} ${gopt}"
+    done
+  fi
 done
 unset grep_wanted_options
 unfunction grep_test_option
 
 ## diff
-diff_test_option() { echo -n | $(which -ps ${2:-diff}) ${1} - - >/dev/null 2> /dev/null  }
+diff_test_option() { echo -n | $(which -p ${2:-diff}) ${1} - - >/dev/null 2> /dev/null  }
 diff_wanted_options=("--color=auto")
 for dbin in diff gdiff; do
-  for dopt in ${diff_wanted_options}; do
-    diff_test_option ${dopt} ${dbin} && alias ${dbin}="${aliases[${dbin}]:-${dbin}} ${dopt}"
-  done
+  if which -p ${dbin} 2> /dev/null > /dev/null; then
+    for dopt in ${diff_wanted_options}; do
+      diff_test_option ${dopt} ${dbin} && alias ${dbin}="${aliases[${dbin}]:-${dbin}} ${dopt}"
+    done
+  fi
 done
 unset diff_wanted_options
 unfunction diff_test_option
