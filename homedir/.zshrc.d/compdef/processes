@@ -19,6 +19,7 @@ zstyle ':completion:*:*:kill:*' force-list always
 zstyle ':completion:*:*:kill:*' insert-ids single
 
 # NOTE: parg selection menu
+compdef _pids pargs
 
 # NOTE: cleanup
 unset ps_cmd

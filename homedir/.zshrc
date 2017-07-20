@@ -118,7 +118,7 @@ fpath+=("${ZDOTDIR:-${HOME}}/.zshrc.d/compdef")
 dynload "${ZDOTDIR:-${HOME}}/.zshrc.d/compdef" 2
 for comp in ${(@k)dynload_data}; do
   if [[ "${comp}" =~ "^_" ]]; then
-    autoload -Ux "${comp}"
+    autoload -Uz "${comp}"
   else
     source "${dynload_data[$comp]}"
   fi
