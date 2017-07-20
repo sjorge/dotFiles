@@ -152,23 +152,13 @@ done
 
 
 ### colorization
+## uniform color theme
+# NOTE: generator available here: https://geoff.greer.fm/lscolors/
+export LSCOLORS="exfxcxdxbxegedabagacad"
+export LS_COLORS="di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
+
 ## BSD compatible
 [[ "${OSTYPE}" =~ "^solaris|^darwin|^freebsd|^linux" ]] && export CLICOLOR=1
-
-## dircolors
-if which -p dircolors 2> /dev/null > /dev/null; then
-  dircolor_configs=()
-  dircolor_configs+=("/etc/DIR_COLORS")
-  if dircolor_configs_pkgsrc=$(pkg_info -Q PKG_SYSCONFDIR coreutils 2> /dev/null); then
-    dircolor_configs+=("${dircolor_configs_pkgsrc}/DIR_COLORS")
-  fi
-  dircolor_configs+=("~/.dir_colors")
-
-  for dcconf in ${dircolor_configs}; do
-    [ -r "${dcconf}" ] && eval $(dircolors -b "${dcconf}")
-  done
-  [ -z "${LS_COLORS}" ] && eval $(dircolors -b)
-fi
 
 ## gnuls
 ls_test_option() { $(which -p ${2:-ls}) ${1} 2> /dev/null > /dev/null }

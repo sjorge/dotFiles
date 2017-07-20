@@ -14,7 +14,6 @@ My personal dotFiles repository, somethings will be encrypted.
   - [ ] homedir_sync.sh file encryption support
 - [ ] .zshrc
   - [X] cleanup
-  - [ ] configure LS_COLORS to match macOS ls colorization
   - [X] tab completion
   - [X] create .zshrc.d/ for dynamic configuration
     - [X] envvars :: setting of environment variables
