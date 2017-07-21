@@ -53,10 +53,10 @@ for entry in $(find homedir -mindepth 1 -maxdepth 1 -type f -name '.DS_Store' -o
   task_begin "Installing ${${(s#/#)entry}[-1]}"
     source_path=".dotFiles/${entry}"
     target_path="${HOME}/${${(s#/#)entry}[-1]}"
-    if [[ ! -L "${target_path}" ]]; then
+    if [[ ! -L "${target_path}" ]] && [[ -e "${target_path}" ]]; then
       mkdir -p "${HOME}/_dotfiles_backup"
       mv "${target_path}" "${HOME}/_dotfiles_backup/"
-    else
+    elif [[ -L "${target_path}" ]]; then
       rm "${target_path}"
     fi
   ln -s "${source_path}" "${target_path}" && task_done || task_fail
