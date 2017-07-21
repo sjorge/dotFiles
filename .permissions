@@ -67,5 +67,5 @@ PERM["homedir/.zshrc.d/themes/gentoo"]=100600
 PERM["tools/.git-post-checkout"]=100700
 PERM["tools/.git-pre-commit"]=100700
 PERM["tools/git_setup_hook.sh"]=100700
-PERM["tools/homedir_sync.sh"]=100700
+PERM["tools/homedir_setup.sh"]=100700
 PERM["tools/pkgsrc_setup_preferences.sh"]=100700

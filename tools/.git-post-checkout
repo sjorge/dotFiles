@@ -7,22 +7,17 @@ TOPDIR="$(git rev-parse --show-toplevel)"
 PERMDB="${TOPDIR}/.permissions"
 
 echo -n "Restoring file permissions..."
-case "${OSTYPE}" in
-  darwin*)
-    if [ -e "${PERMDB}" ]; then
-      source "${TOPDIR}/.permissions"
-      pushd "${TOPDIR}"
-      for file in ${(o)${(@k)PERM}}; do
-        mode=${PERM[${file}]}
-        [ "${mode}" -ge 100000 ] && mode=${mode[-4,-1]}
-        if [ -n "${(Q)file}" ]; then
-          chmod ${mode} "${(Q)file}"
-        fi
-      done
-      echo "OK"
+if [ -e "${PERMDB}" ]; then
+  source "${TOPDIR}/.permissions"
+  pushd "${TOPDIR}"
+  for file in ${(o)${(@k)PERM}}; do
+    mode=${PERM[${file}]}
+    [ "${mode}" -ge 100000 ] && mode=${mode[-4,-1]}
+    if [ -n "${(Q)file}" ]; then
+      chmod ${mode} "${(Q)file}"
     fi
-  ;;
-  *) echo "UNSUPPORTED" ;;
-esac
+  done
+  echo "OK"
+fi
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
