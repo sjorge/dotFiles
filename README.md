@@ -9,9 +9,10 @@ My personal dotFiles repository, somethings will be encrypted.
 - [X] tools
   - [X] git_setup_hook.sh
   - [X] pkgsrc_setup_preferences.sh
-  - [X] homedir_sync.sh
-  - [X] homedir_sync.sh file removal support
-  - [ ] homedir_sync.sh file encryption support
+  - [X] homedir_setup.sh
+  - [X] homedir_setup.sh file removal support
+  - [ ] homedir_setup.sh file encryption support
+  - [ ] git hooks auto add .gitignore for enc file parent
 - [ ] .zshrc
   - [X] cleanup
   - [X] tab completion
