@@ -1,4 +1,4 @@
-#!env zsh
+#!/bin/bash
 ####
 # Try and store permissions
 ####
