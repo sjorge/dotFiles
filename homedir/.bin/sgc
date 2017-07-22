@@ -15,7 +15,6 @@ _sgc_log_error()   { (>&2 echo "[EE] ${@}") }  # log error msg
 _sgc_log_warning() { (>&1 echo "[WW] ${@}") }  # log warning msg
 _sgc_log_info()    { [[ "${SGC_LOG_VERBOSE:-0}" -gt 0 ]] && (>&1 echo "[II] ${@}") }  # log info msg
 _sgc_config_load() {  # load configuration
-
   ## source sgc_config if exists
   if [[ -n "${1}" ]]; then
     [[ -r "${HOME}/.sgc.d/${1}/sgc_config" ]] && source "${HOME}/.sgc.d/${1}/sgc_config"
@@ -62,18 +61,9 @@ _sgc_config_verify() {  # verify configuration
 _sgc_check_verbose() {  # check -v has been passed
   (( ${@[(I)-v]} )) && SGC_LOG_VERBOSE=1
 }
-_sgc_check_ssh() {  # check if ssh > 7.3p1
-  local ssh_v=$(ssh -V 2>&1)
-  [[ "${ssh_v}" =~ "^OpenSSH_([0-9]+)\.([0-9]+)p([0-9]+)" ]] && ssh_v=($match[@]) || ssh_v=(0 0 0)
-  [[ "${ssh_v[1]}" -lt 7 ]] && return 1
-  [[ "${ssh_v[1]}" -eq 7 ]] && [[ "${ssh_v[2]}" -lt 3 ]] && return 1
-  [[ "${ssh_v[1]}" -eq 7 ]] && [[ "${ssh_v[2]}" -eq 3 ]] && [[ "${ssh_v[3]}" -lt 1 ]] && return 1
-  SGC_SSH_VERSION="OpenSSH ${ssh_v[1]}.${ssh_v[2]}p${ssh_v[3]}"
-  return 0
-}
 _sgc_setup_env() {  # setup environment
   case "${SGC_AGENT}" in
-    none)        echo -n "-n SSH_AUTH_SOCK -n SSH_AGENT_PID " ;;
+    none)        echo -n "-u SSH_AUTH_SOCK -u SSH_AGENT_PID " ;;
     ssh)
       local pids=($(ps -a -U ${USER} -o pid))
       [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
@@ -105,11 +95,42 @@ _sgc_setup_env() {  # setup environment
   esac
 }
 _sgc_setup_args() {  # setup args
+  local skip_proxy=${(L)1:-no}
   [[ "${SGC_CONFIG_DIR}/" == "${HOME}/" ]] && return 0
 
-  [[ -r "${SGC_CONFIG_DIR}/ssh_config" ]] && echo -n " -F \"${SGC_CONFIG_DIR}/ssh_config\"" 
+  if [[ -r "${SGC_CONFIG_DIR}/ssh_config" ]]; then
+    echo -n " -F \"${SGC_CONFIG_DIR}/ssh_config\"" 
+  fi
   echo -n " -o UserKnownHostsFile=\"${SGC_CONFIG_DIR}/known_hosts\""
-  [[ -n "${SGC_JUMP_PROXY}" ]] && echo " -o ProxyJump=\"${SGC_JUMP_PROXY}\""
+  if [[ "${skip_proxy}" == "no" ]] && [[ -n "${SGC_JUMP_PROXY}" ]]; then
+    local proxy_args=()
+    if [[ "${SGC_JUMP_PROXY}" =~ "^([a-zA-Z0-9]+)\@([a-zA-Z0-9._-]+)\:([0-9]+)$" ]]; then
+      proxy_args+=(-l)
+      proxy_args+=(${match[1]})
+      proxy_args+=(-p)
+      proxy_args+=(${match[3]})
+      proxy_args+=(-W)
+      proxy_args+=("'[%h]:%p'")
+      proxy_args+=(${match[2]})
+    elif [[ "${SGC_JUMP_PROXY}" =~ "^([a-zA-Z0-9._-]+)\:([0-9]+)$" ]]; then
+      proxy_args+=(-p)
+      proxy_args+=(${match[2]})
+      proxy_args+=(-W)
+      proxy_args+=("'[%h]:%p'")
+      proxy_args+=(${match[1]})
+    elif [[ "${SGC_JUMP_PROXY}" =~ "^([a-zA-Z0-9]+)\@([a-zA-Z0-9._-]+)$" ]]; then
+      proxy_args+=(-l)
+      proxy_args+=(${match[1]})
+      proxy_args+=(-W)
+      proxy_args+=("'[%h]:%p'")
+      proxy_args+=(${match[2]})
+    else
+      proxy_args+=(-W)
+      proxy_args+=("'[%h]:%p'")
+      proxy_args+=(${SGC_JUMP_PROXY})
+    fi
+    echo " -o ProxyCommand=\"ssh $(_sgc_setup_args yes) ${proxy_args[@]} 2> /dev/null\""
+  fi
 }
 _sgc_agent_kill() {  # kill agent if running
   local pids=($(ps -a -U ${USER} -o pid))
@@ -144,9 +165,8 @@ _sgc_exit_ok()    { _sgc_config_clear ; exit 0 }                        # exit n
 ### main
 _sgc_config_load "${SGC_CONFIG:-}"
 _sgc_check_verbose ${@}
-_sgc_check_ssh || _sgc_exit_error "ProxyJump is only available in OpenSSH 7.3 or newer!"
 _sgc_config_verify || _sgc_exit_error "Configuration is not or invalid complete!"
-_sgc_log_info "SSH Gate Command (profile=${SGC_NAME}, ssh=${SGC_SSH_VERSION})"
+_sgc_log_info "SSH Gate Command (profile=${SGC_NAME})"
 case ${(L)1:-} in
   scp)     _sgc_command all ${@} ;;
   ssh)     _sgc_command all ${@} ;;
