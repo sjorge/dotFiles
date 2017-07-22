@@ -129,7 +129,7 @@ _sgc_setup_args() {  # setup args
       proxy_args+=("'[%h]:%p'")
       proxy_args+=(${SGC_JUMP_PROXY})
     fi
-    echo " -o ProxyCommand=\"ssh $(_sgc_setup_args yes) ${proxy_args[@]} 2> /dev/null\""
+    echo " -o ProxyCommand=\"ssh$(_sgc_setup_args yes) ${proxy_args[@]} 2> /dev/null\""
   fi
 }
 _sgc_agent_kill() {  # kill agent if running
@@ -147,15 +147,15 @@ _sgc_command() {  # wrapes commands in proper flags and environment
   case ${mode} in
     all)  # NOTE: inject environment and additional parameters
       _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}"
-      eval env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}
+      eval "env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}"
     ;;
     env)  # NOTE: inject environment only (e.g. ssh-add)
       _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
-      eval env $(_sgc_setup_env)${cmd} ${cmd_args[@]}
+      eval "env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
     ;;
     rsync) # NOTE: inject environment and additional parameters with rsync compat
       _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}"
-      eval env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}
+      eval "env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}"
     ;;
   esac
 }
