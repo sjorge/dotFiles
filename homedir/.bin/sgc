@@ -1,0 +1,173 @@
+#!env zsh
+#### SSH Gate Control (SGC)
+## Utility for providing distinct environments
+## for ssh. Each environment has agents, config, ...
+##
+## TODO: gpg-agent
+## TODO: sgc_config.example
+
+emulate zsh
+set -u
+
+### internal functions
+_sgc_log_error()   { (>&2 echo "[EE] ${@}") }  # log error msg
+_sgc_log_warning() { (>&1 echo "[WW] ${@}") }  # log warning msg
+_sgc_log_info()    { [[ "${SGC_LOG_VERBOSE:-0}" -gt 0 ]] && (>&1 echo "[II] ${@}") }  # log info msg
+_sgc_config_load() {  # load configuration
+
+  ## source sgc_config if exists
+  if [[ -n "${1}" ]]; then
+    [[ -r "${HOME}/.sgc.d/${1}/sgc_config" ]] && source "${HOME}/.sgc.d/${1}/sgc_config"
+    SGC_CONFIG_DIR="${HOME}/.sgc.d/${1}"
+  else
+    SGC_CONFIG_DIR="${HOME}"
+  fi
+
+  ## set configuration (defaults)
+  SGC_NAME="${SGC_NAME:-default}"
+  SGC_AGENT="${(L)SGC_AGENT:-passthrough}"
+  SGC_AGENT_IMPORT="${(L)SGC_AGENT_IMPORT:-no}"
+  SGC_AGENT_PKCS11="${SGC_AGENT_PKCS11:-}"
+  SGC_JUMP_PROXY="${SGC_JUMP_PROXY:-}"
+}
+_sgc_config_clear() {  # clear configuration
+  ## clear configuration
+  unset \
+    SGC_NAME \
+    SGC_AGENT \
+    SGC_AGENT_IMPORT \
+    SGC_AGENT_PKCS11 \
+    SGC_JUMP_PROXY \
+    SGC_CONFIG_DIR
+}
+_sgc_config_verify() {  # verify configuration
+  local retval=0
+
+  ## verify agent
+  local agent_range=(none ssh-agent gpg-agent passthrough)
+  if (( ! ${agent_range[(I)${SGC_AGENT}]} )) ; then
+    retval=1
+    _sgc_log_warning "The SGC_AGENT value of is not in (${agent_range[@]})!"
+  fi
+
+  ## verify PKCS11 library
+  if [[ -n "${SGC_AGENT_PKCS11:-}" ]] && [[ ! -r "${SGC_AGENT_PKCS11}" ]]; then
+    retval=1
+    _sgc_log_warning "Cannot read PKCS11 library (${SGC_AGENT_PKCS11})!"
+  fi
+
+  return ${retval}
+}
+_sgc_check_verbose() {  # check -v has been passed
+  (( ${@[(I)-v]} )) && SGC_LOG_VERBOSE=1
+}
+_sgc_check_ssh() {  # check if ssh > 7.3p1
+  local ssh_v=$(ssh -V 2>&1)
+  [[ "${ssh_v}" =~ "^OpenSSH_([0-9]+)\.([0-9]+)p([0-9]+)" ]] && ssh_v=($match[@]) || ssh_v=(0 0 0)
+  [[ "${ssh_v[1]}" -lt 7 ]] && return 1
+  [[ "${ssh_v[1]}" -eq 7 ]] && [[ "${ssh_v[2]}" -lt 3 ]] && return 1
+  [[ "${ssh_v[1]}" -eq 7 ]] && [[ "${ssh_v[2]}" -eq 3 ]] && [[ "${ssh_v[3]}" -lt 1 ]] && return 1
+  SGC_SSH_VERSION="OpenSSH ${ssh_v[1]}.${ssh_v[2]}p${ssh_v[3]}"
+  return 0
+}
+_sgc_setup_env() {  # setup environment
+  case "${SGC_AGENT}" in
+    none)        echo -n "-n SSH_AUTH_SOCK -n SSH_AGENT_PID " ;;
+    ssh-agent)
+      local pids=($(ps -a -U ${USER} -o pid))
+      [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
+      if (( ! ${pids[(I)${SSH_AGENT_PID:-}]} )); then
+        eval $(ssh-agent -a "${SGC_CONFIG_DIR}/.ssh-agent.sock" >&1 > "${SGC_CONFIG_DIR}/.ssh-agent.env") 2> /dev/null > /dev/null
+        if [[ "${SGC_AGENT_IMPORT}" =~ "^yes$" ]]; then
+          for key in identity id_dsa id_ecdsa id_ed25519 id_rsa; do
+            if [[ -r "${SGC_CONFIG_DIR}/${key}" ]]; then
+              eval env SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-}" SSH_AGENT_PID="${SSH_AGENT_PID:-}" ssh-add "${SGC_CONFIG_DIR}/${key}"
+            fi
+          done
+        fi
+        if [[ -n "${SGC_AGENT_PKCS11:-}" ]]; then
+          eval env SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-}" SSH_AGENT_PID="${SSH_AGENT_PID:-}" ssh-add -s "${SGC_AGENT_PKCS11}"
+        fi
+      fi
+    ;|
+    gpg-agent)
+      sgc_log_warning "The gpg-agent is currently not supported!"
+    ;|
+    passthrough|*-agent)
+      if [[ -n "${SSH_AUTH_SOCK:-}" ]]; then
+        echo -n "SSH_AUTH_SOCK=\"${SSH_AUTH_SOCK:-}\" "
+      fi
+      if [[ -n "${SSH_AGENT_PID:-}" ]]; then
+        echo -n "SSH_AGENT_PID=\"${SSH_AGENT_PID:-}\" "
+      fi
+    ;;
+  esac
+}
+_sgc_setup_args() {  # setup args
+  [[ "${SGC_CONFIG_DIR}/" == "${HOME}/" ]] && return 0
+
+  [[ -r "${SGC_CONFIG_DIR}/ssh_config" ]] && echo -n " -F \"${SGC_CONFIG_DIR}/ssh_config\"" 
+  echo -n " -o UserKnownHostsFile=\"${SGC_CONFIG_DIR}/known_hosts\""
+  [[ -n "${SGC_JUMP_PROXY}" ]] && echo " -o ProxyJump=\"${SGC_JUMP_PROXY}\""
+}
+_sgc_agent_kill() {  # kill agent if running
+  local pids=($(ps -a -U ${USER} -o pid))
+  [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
+  if (( ${pids[(I)${SSH_AGENT_PID:-}]} )); then
+    _sgc_command env ssh-agent -k 2> /dev/null > /dev/null
+  fi
+}
+_sgc_command() {  # wrapes commands in proper flags and environment
+  local mode=$1; shift
+  local cmd=$1; shift
+  local cmd_args=(${@})
+
+  case ${mode} in
+    all)  # NOTE: inject environment and additional parameters
+      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}"
+      eval env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}
+    ;;
+    env)  # NOTE: inject environment only (e.g. ssh-add)
+      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
+      eval env $(_sgc_setup_env)${cmd} ${cmd_args[@]}
+    ;;
+    rsync) # NOTE: inject environment and additional parameters with rsync compat
+      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}"
+      eval env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}
+    ;;
+  esac
+}
+_sgc_exit_error() { _sgc_config_clear ; _sgc_log_error ${@} ; exit 1 }  # exit with error
+_sgc_exit_ok()    { _sgc_config_clear ; exit 0 }                        # exit normally
+
+### main
+_sgc_config_load "${SGC_CONFIG:-}"
+_sgc_check_verbose ${@}
+_sgc_check_ssh || _sgc_exit_error "ProxyJump is only available in OpenSSH 7.3 or newer!"
+_sgc_config_verify || _sgc_exit_error "Configuration is not or invalid complete!"
+_sgc_log_info "SSH Gate Command (profile=${SGC_NAME}, ssh=${SGC_SSH_VERSION})"
+case ${(L)1:-} in
+  scp)     _sgc_command all ${@} ;;
+  ssh)     _sgc_command all ${@} ;;
+  ssh-add) _sgc_command env ${@} ;;
+  ssh-agent)
+    if [[ "${2:-}" != "-k" ]]; then
+      _sgc_log_warning "Running ssh-agent using the SGC wrapper is only allowed with the '-k' argument!"
+    else
+      _sgc_agent_kill
+    fi
+  ;;
+  rsync) _sgc_command rsync ${@} ;;
+  *)
+    if [[ ${#@} -gt 0 ]]; then
+      _sgc_log_error "No handler known for the command \"${1:-}\"!"
+    else
+      SGC_LOG_VERBOSE=1 _sgc_log_info "Usage: sgc [command] [command_arguments]"
+      SGC_LOG_VERBOSE=1 _sgc_log_info "       sgc ssh -l myuser server.example.org"
+      SGC_LOG_VERBOSE=1 _sgc_log_info "       sgc scp data.tar.gz server.example.org:/data/archive_YYYYMMDD.tar.gz"
+    fi
+  ;;
+esac
+_sgc_exit_ok
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

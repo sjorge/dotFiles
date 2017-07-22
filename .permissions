@@ -2,6 +2,7 @@ typeset -A PERM
 PERM[".gitignore"]=100600
 PERM[".permissions"]=100644
 PERM["README.md"]=100600
+PERM["homedir/.bin/sgc"]=100700
 PERM["homedir/.vimrc"]=100600
 PERM["homedir/.zshrc"]=100600
 PERM["homedir/.zshrc.d/README"]=100600

@@ -1,4 +1,7 @@
+## manual entries
 ._*
 .DS_Store
 .zhistory
 *.swp
+homedir/.sgc.d/*/known_hosts
+homedir/.sgc.d/*/.ssh-agent.*
