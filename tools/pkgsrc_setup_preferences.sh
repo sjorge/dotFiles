@@ -34,6 +34,7 @@ PKGSRC_WANT[zipnote]=
 PKGSRC_WANT[zipsplit]=
 PKGSRC_WANT[ziptool]=
 PKGSRC_WANT[diff]=gdiff
+PKGSRC_WANT[vim]=
 
 for bin in ${(@k)PKGSRC_WANT}; do
  [ ! -n "${PKGSRC_WANT[${bin}]}" ] && PKGSRC_WANT[${bin}]=${bin}
