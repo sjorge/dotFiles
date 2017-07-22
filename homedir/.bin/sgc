@@ -5,6 +5,7 @@
 ##
 ## TODO: gpg-agent
 ## TODO: sgc_config.example
+## TODO: document 'git config core.sshCommand 'env SGC_CONFIG=acheron zsh ~/.bin/sgc ssh'
 
 emulate zsh
 set -u
@@ -44,7 +45,7 @@ _sgc_config_verify() {  # verify configuration
   local retval=0
 
   ## verify agent
-  local agent_range=(none ssh-agent gpg-agent passthrough)
+  local agent_range=(none ssh gpg passthrough)
   if (( ! ${agent_range[(I)${SGC_AGENT}]} )) ; then
     retval=1
     _sgc_log_warning "The SGC_AGENT value of is not in (${agent_range[@]})!"
@@ -73,7 +74,7 @@ _sgc_check_ssh() {  # check if ssh > 7.3p1
 _sgc_setup_env() {  # setup environment
   case "${SGC_AGENT}" in
     none)        echo -n "-n SSH_AUTH_SOCK -n SSH_AGENT_PID " ;;
-    ssh-agent)
+    ssh)
       local pids=($(ps -a -U ${USER} -o pid))
       [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
       if (( ! ${pids[(I)${SSH_AGENT_PID:-}]} )); then
@@ -90,10 +91,10 @@ _sgc_setup_env() {  # setup environment
         fi
       fi
     ;|
-    gpg-agent)
+    gpg)
       sgc_log_warning "The gpg-agent is currently not supported!"
     ;|
-    passthrough|*-agent)
+    passthrough|ssh|gpg)
       if [[ -n "${SSH_AUTH_SOCK:-}" ]]; then
         echo -n "SSH_AUTH_SOCK=\"${SSH_AUTH_SOCK:-}\" "
       fi
