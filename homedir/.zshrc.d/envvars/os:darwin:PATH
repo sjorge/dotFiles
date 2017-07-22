@@ -3,6 +3,9 @@
 ## use macos's build in path generator
 eval $(/usr/libexec/path_helper)
 
+## add ${HOME}/.bin
+[[ -e "${HOME}/.bin" ]] && PATH="${PATH}:${HOME}/.bin"
+
 # return new PATH
 echo "${PATH}"
 

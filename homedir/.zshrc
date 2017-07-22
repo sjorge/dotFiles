@@ -92,9 +92,9 @@ zstyle ':completion::complete:*' cache-path ~/.zcache
 
 ## various tweaks
 zstyle '*' single-ignored show
-# NOTE: menu default
+# NOTE: menu default (list-colors is a copy of LS_COLORS)
 zstyle ':completion:*:*:*:*:*' menu select
-zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-colors 'di=34:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43'
 zstyle ':completion:*:matches' group 'yes'
 zstyle ':completion:*:options' description 'yes'
 zstyle ':completion:*:options' auto-description '%d'

@@ -7,12 +7,15 @@
 
 # LX BrandZ
 if [ -d "/native" ]; then
-  export PATH="${PATH}:/native/usr/bin"
+  PATH="${PATH}:/native/usr/bin"
   if [ "${WANT_SBIN:-0}" -gt 0 ]; then
-    export PATH="${PATH}:/native/sbin"
-    export PATH="${PATH}:/native/usr/sbin"
+    PATH="${PATH}:/native/sbin"
+    PATH="${PATH}:/native/usr/sbin"
   fi
 fi
+
+## add ${HOME}/.bin
+[[ -e "${HOME}/.bin" ]] && PATH="${PATH}:${HOME}/.bin"
 
 # return new PATH
 echo "${PATH}"
