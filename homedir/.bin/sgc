@@ -1,4 +1,4 @@
-#!env zsh
+#!/usr/bin/env zsh
 #### SSH Gate Control (SGC)
 ## Utility for providing distinct environments
 ## for ssh. Each environment has agents, config, ...
@@ -47,13 +47,22 @@ _sgc_config_verify() {  # verify configuration
   local agent_range=(none ssh gpg passthrough)
   if (( ! ${agent_range[(I)${SGC_AGENT}]} )) ; then
     retval=1
-    _sgc_log_warning "The SGC_AGENT value of is not in (${agent_range[@]})!"
+    _sgc_log_error "The SGC_AGENT value of is not in (${agent_range[@]})!"
   fi
 
   ## verify PKCS11 library
-  if [[ -n "${SGC_AGENT_PKCS11:-}" ]] && [[ ! -r "${SGC_AGENT_PKCS11}" ]]; then
+  if [[ -n "${SGC_AGENT_PKCS11}" ]] && [[ ! -r "${SGC_AGENT_PKCS11}" ]]; then
     retval=1
-    _sgc_log_warning "Cannot read PKCS11 library (${SGC_AGENT_PKCS11})!"
+    _sgc_log_error "Cannot read PKCS11 library (${SGC_AGENT_PKCS11})!"
+  fi
+
+  ## warn about IMPORT and GPG
+  [[ "${SGC_AGENT}" == "gpg" ]] && [[ "${SGC_AGENT_IMPORT}" == "yes" ]] && \
+    _sgc_log_warning "Auto imprting of keys only works for when SGC_AGENT is set to 'ssh'."
+
+  ## ensure .gnupg directory exists
+  if [[ ! -e "${SGC_CONFIG_DIR}/.gnupg/" ]]; then
+    mkdir -p -m 0700 "${SGC_CONFIG_DIR}/.gnupg/"
   fi
 
   return ${retval}
@@ -68,7 +77,7 @@ _sgc_setup_env() {  # setup environment
       local pids=($(ps -a -U ${USER} -o pid))
       [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
       if (( ! ${pids[(I)${SSH_AGENT_PID:-}]} )); then
-        eval $(ssh-agent -a "${SGC_CONFIG_DIR}/.ssh-agent.sock" >&1 > "${SGC_CONFIG_DIR}/.ssh-agent.env") 2> /dev/null > /dev/null
+        eval $(ssh-agent >&1 > "${SGC_CONFIG_DIR}/.ssh-agent.env") 2> /dev/null > /dev/null
         if [[ "${SGC_AGENT_IMPORT}" =~ "^yes$" ]]; then
           for key in identity id_dsa id_ecdsa id_ed25519 id_rsa; do
             if [[ -r "${SGC_CONFIG_DIR}/${key}" ]]; then
@@ -82,7 +91,20 @@ _sgc_setup_env() {  # setup environment
       fi
     ;|
     gpg)
-      sgc_log_warning "The gpg-agent is currently not supported!"
+      local pids=($(ps -a -U ${USER} -o pid))
+      [[ -r "${SGC_CONFIG_DIR}/.gpg-agent.env" ]] && source "${SGC_CONFIG_DIR}/.gpg-agent.env" 2> /dev/null > /dev/null
+      if (( ! ${pids[(I)${SSH_AGENT_PID:-}]} )); then
+        eval $(gpg-agent --homedir "${SGC_CONFIG_DIR}/.gnupg/" --write-env-file "${SGC_CONFIG_DIR}/.gpg-agent.env" --no-use-standard-socket --enable-ssh-support --daemon) 2> /dev/null > /dev/null
+        #if [[ "${SGC_AGENT_IMPORT}" =~ "^yes$" ]]; then
+        #  for key in identity id_dsa id_ecdsa id_ed25519 id_rsa; do
+        #    if [[ -r "${SGC_CONFIG_DIR}/${key}" ]]; then
+        #      eval env SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-}" SSH_AGENT_PID="${SSH_AGENT_PID:-}" ssh-add "${SGC_CONFIG_DIR}/${key}"
+        #    fi
+        #  done
+        #fi
+      fi
+      echo -n "GPG_AGENT_INFO=\"${GPG_AGENT_INFO}\" "
+      echo -n "GPG_TTY=\"$(tty)\" "
     ;|
     passthrough|ssh|gpg)
       if [[ -n "${SSH_AUTH_SOCK:-}" ]]; then
@@ -94,7 +116,7 @@ _sgc_setup_env() {  # setup environment
     ;;
   esac
 }
-_sgc_setup_args() {  # setup args
+_sgc_setup_ssh() {  # setup ssh args
   local skip_proxy=${(L)1:-no}
   [[ "${SGC_CONFIG_DIR}/" == "${HOME}/" ]] && return 0
 
@@ -129,33 +151,46 @@ _sgc_setup_args() {  # setup args
       proxy_args+=("'[%h]:%p'")
       proxy_args+=(${SGC_JUMP_PROXY})
     fi
-    echo " -o ProxyCommand=\"ssh$(_sgc_setup_args yes) ${proxy_args[@]} 2> /dev/null\""
+    echo -n " -o ProxyCommand=\"ssh$(_sgc_setup_ssh yes) ${proxy_args[@]} 2> /dev/null\""
   fi
 }
-_sgc_agent_kill() {  # kill agent if running
+_sgc_setup_gpg() {  # setup gpg args
+  echo -n " --homedir \"${SGC_CONFIG_DIR}/.gnupg/\""
+}
+_sgc_command_ssh_agent() {  # wraps ssh-agent command
+  if [[ "${2:-}" != "-k" ]]; then
+    _sgc_log_warning "Running ssh-agent using the SGC wrapper is only allowed with the '-k' argument!"
+    return 1
+  fi
+
   local pids=($(ps -a -U ${USER} -o pid))
   [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
   if (( ${pids[(I)${SSH_AGENT_PID:-}]} )); then
     _sgc_command env ssh-agent -k 2> /dev/null > /dev/null
   fi
 }
-_sgc_command() {  # wrapes commands in proper flags and environment
+_sgc_command() {  # wraps commands in proper flags and environment
   local mode=$1; shift
   local cmd=$1; shift
   local cmd_args=(${@})
 
   case ${mode} in
-    all)  # NOTE: inject environment and additional parameters
-      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}"
-      eval "env $(_sgc_setup_env)${cmd}$(_sgc_setup_args) ${cmd_args[@]}"
-    ;;
     env)  # NOTE: inject environment only (e.g. ssh-add)
       _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
       eval "env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
     ;;
-    rsync) # NOTE: inject environment and additional parameters with rsync compat
-      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}"
-      eval "env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_args)' ${cmd_args[@]}"
+    ssh)  # NOTE: inject environment and ssh compatible (e.g. ssh and scp)
+      _sgc_log_info "executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_ssh) ${cmd_args[@]}"
+      eval "env $(_sgc_setup_env)${cmd}$(_sgc_setup_ssh) ${cmd_args[@]}"
+    ;;
+    gpg)  # NOTE: inject environment and gpg compatible (e.g. gpg and gpg-agent-connect)
+      _sgc_log_info "executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_gpg) ${cmd_args[@]}"
+      GPG_TTY=$(tty)
+      eval "env $(_sgc_setup_env)${cmd}$(_sgc_setup_gpg) ${cmd_args[@]}"
+    ;;
+    rsync) # NOTE: inject environment and rsync compatible (e.g. rsync)
+      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_ssh)' ${cmd_args[@]}"
+      eval "env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_ssh)' ${cmd_args[@]}"
     ;;
   esac
 }
@@ -168,17 +203,13 @@ _sgc_check_verbose ${@}
 _sgc_config_verify || _sgc_exit_error "Configuration is not or invalid complete!"
 _sgc_log_info "SSH Gate Command (profile=${SGC_NAME})"
 case ${(L)1:-} in
-  scp)     _sgc_command all ${@} ;;
-  ssh)     _sgc_command all ${@} ;;
-  ssh-add) _sgc_command env ${@} ;;
-  ssh-agent)
-    if [[ "${2:-}" != "-k" ]]; then
-      _sgc_log_warning "Running ssh-agent using the SGC wrapper is only allowed with the '-k' argument!"
-    else
-      _sgc_agent_kill
-    fi
-  ;;
-  rsync) _sgc_command rsync ${@} ;;
+  scp)               _sgc_command ssh ${@}       ;;
+  ssh)               _sgc_command ssh ${@}       ;;
+  ssh-add)           _sgc_command env ${@}       ;;
+  ssh-agent)         _sgc_command_ssh_agent ${@} ;;
+  gpg|gpg2)          _sgc_command gpg ${@}       ;;
+  gpg-connect-agent) _sgc_command gpg ${@}       ;;
+  rsync)             _sgc_command rsync ${@}     ;;
   *)
     if [[ ${#@} -gt 0 ]]; then
       _sgc_log_error "No handler known for the command \"${1:-}\"!"

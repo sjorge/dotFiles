@@ -1,4 +1,4 @@
-#!env zsh
+#!/usr/bin/env zsh
 ####
 # Symlink some pkgsrc binaries into /usr/local/bin so
 # that they priority over MacOS's build in tools.

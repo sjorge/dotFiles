@@ -1,4 +1,4 @@
-#!env zsh
+#!/usr/bin/env zsh
 ####
 # Install configuration files into homedir
 ###
