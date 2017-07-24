@@ -15,7 +15,7 @@ if [ -d "/native" ]; then
 fi
 
 ## add ${HOME}/.bin
-[[ -e "${HOME}/.bin" ]] && PATH="${PATH}:${HOME}/.bin"
+[ -e "${HOME}/.bin" ] && PATH="${PATH}:${HOME}/.bin"
 
 # return new PATH
 echo "${PATH}"
