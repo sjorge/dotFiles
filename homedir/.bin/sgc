@@ -72,7 +72,8 @@ _sgc_check_verbose() {  # check -v has been passed
 }
 _sgc_setup_env() {  # setup environment
   case "${SGC_AGENT}" in
-    none)        echo -n "-u SSH_AUTH_SOCK -u SSH_AGENT_PID " ;;
+    nono|ssh|gpg)  unset SSH_AUTH_SOCK SSH_AGENT_PID GPG_AGENT_INFO GPG_TTY ;|
+    none)          echo -n "-u SSH_AUTH_SOCK -u SSH_AGENT_PID -u GPG_AGENT_INFO " ;|
     ssh)
       local pids=($(ps -a -U ${USER} -o pid))
       [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
@@ -95,16 +96,7 @@ _sgc_setup_env() {  # setup environment
       [[ -r "${SGC_CONFIG_DIR}/.gpg-agent.env" ]] && source "${SGC_CONFIG_DIR}/.gpg-agent.env" 2> /dev/null > /dev/null
       if (( ! ${pids[(I)${SSH_AGENT_PID:-}]} )); then
         eval $(gpg-agent --homedir "${SGC_CONFIG_DIR}/.gnupg/" --write-env-file "${SGC_CONFIG_DIR}/.gpg-agent.env" --no-use-standard-socket --enable-ssh-support --daemon) 2> /dev/null > /dev/null
-        #if [[ "${SGC_AGENT_IMPORT}" =~ "^yes$" ]]; then
-        #  for key in identity id_dsa id_ecdsa id_ed25519 id_rsa; do
-        #    if [[ -r "${SGC_CONFIG_DIR}/${key}" ]]; then
-        #      eval env SSH_AUTH_SOCK="${SSH_AUTH_SOCK:-}" SSH_AGENT_PID="${SSH_AGENT_PID:-}" ssh-add "${SGC_CONFIG_DIR}/${key}"
-        #    fi
-        #  done
-        #fi
       fi
-      echo -n "GPG_AGENT_INFO=\"${GPG_AGENT_INFO}\" "
-      echo -n "GPG_TTY=\"$(tty)\" "
     ;|
     passthrough|ssh|gpg)
       if [[ -n "${SSH_AUTH_SOCK:-}" ]]; then
@@ -112,6 +104,10 @@ _sgc_setup_env() {  # setup environment
       fi
       if [[ -n "${SSH_AGENT_PID:-}" ]]; then
         echo -n "SSH_AGENT_PID=\"${SSH_AGENT_PID:-}\" "
+      fi
+      if [[ -n "${GPG_AGENT_INFO:-}" ]]; then
+        echo -n "GPG_AGENT_INFO=\"${GPG_AGENT_INFO:-}\" "
+        echo -n "GPG_TTY=\"$(tty)\" "
       fi
     ;;
   esac
