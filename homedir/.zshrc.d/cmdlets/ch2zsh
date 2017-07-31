@@ -5,7 +5,7 @@
 
 ch2zsh() {
   case $OSTYPE in
-    linux*|darwin*|openbsd*|freebsd*) chsh -s ${(s: -> :)$(which -ps zsh)[-1]}                        ;;
+    linux*|darwin*|openbsd*|freebsd*) sudo chsh -s ${(s: -> :)$(which -ps zsh)[0]}                    ;;
     solaris*)                pfexec /usr/sbin/usermod -s ${(s: -> :)$(which -ps zsh)[-1]} $(id -n -u) ;;
     *)                       echo "No zshenable implemented for $OSTYPE."                             ;;
   esac
