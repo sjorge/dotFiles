@@ -1,0 +1,54 @@
+### cmdlet wrapper for rdesktop/xfreerdp
+## NOTE: usage rdp host args
+rdp() {
+  local rdp_host=
+  local rdp_port=
+  local rdp_user=
+  local rdp_domain=
+  local rdp_args=()
+
+  if [[ ${#} -lt 1 ]]; then
+    echo "Usage: rdp [DOMAIN%][username@]hostname[:port] [extra_args]"
+    return 1
+  fi
+
+  rdp_host="${1}"; shift
+  rdp_args=(${@})
+
+  ## parse user, host and port
+  if [[ "${rdp_host}" =~ "^([a-zA-Z0-9.-_%]+)\@([a-zA-Z0-9.-_]+)\:([a-zA-Z0-9.-_]+)$" ]]; then
+    rdp_user="${match[1]}"
+    rdp_host="${match[2]}"
+    rdp_port="${match[3]}"
+  elif [[ "${rdp_host}" =~ "^([a-zA-Z0-9.-_%]+)\@([a-zA-Z0-9.-_]+)$" ]]; then
+    rdp_user="${match[1]}"
+    rdp_host="${match[2]}"
+  elif [[ "${rdp_host}" =~ "^([a-zA-Z0-9.-_]+)\:([a-zA-Z0-9.-_]+)$" ]]; then
+    rdp_host="${match[2]}"
+    rdp_port="${match[3]}"
+  fi
+
+  ## parse domain
+  if [[ "${rdp_user}" =~ "^([a-zA-Z0-9.-_]+)\%([a-zA-Z0-9.-_]+)$" ]]; then
+    rdp_domain="${match[1]}"
+    rdp_user="${match[2]}"
+  fi
+
+  if which xfreerdp 2> /dev/null > /dev/null; then
+    [[ -n "${rdp_user:-}" ]] && rdp_args+=(/u:${rdp_user})
+    [[ -n "${rdp_domain:-}" ]] && rdp_args+=(/d:${rdp_domain})
+    [[ -n "${rdp_port:-}" ]] && rdp_args+=(/port:${rdp_port})
+    rdp_args+=(/v:${rdp_host})
+    xfreerdp /clipboard /compression ${rdp_args[@]}
+  elif which rdesktop 2> /dev/null > /dev/null; then
+    [[ -n "${rdp_user:-}" ]] && rdp_args+=(-u ${rdp_user})
+    [[ -n "${rdp_domain:-}" ]] && rdp_args+=(-d ${rdp_domain})
+    [[ -n "${rdp_port:-}" ]] && rdp_args+=(${rdp_host}:${rdp_port}) || rdp_args+=(${rdp_host})
+    rdesktop -r clipboard:PRIMARYCLIPBOARD ${rdp_args[@]} ${rdp_host}
+  else
+    echo "Could not locate xfreerdp or rdesktop!"
+    return 1
+  fi
+}
+
+# vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
