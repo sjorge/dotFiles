@@ -107,7 +107,8 @@ _sgc_setup_env() {  # setup environment
       fi
       if [[ -n "${GPG_AGENT_INFO:-}" ]]; then
         echo -n "GPG_AGENT_INFO=\"${GPG_AGENT_INFO:-}\" "
-        echo -n "GPG_TTY=\"$(tty)\" "
+        ## NOTE: when GPG_TTY is set the pin entry program does not show!
+        # echo -n "GPG_TTY=\"$(tty)\" "
       fi
     ;;
   esac
