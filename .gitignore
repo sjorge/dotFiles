@@ -8,3 +8,15 @@ homedir/.sgc.d/*/.ssh-agent.*
 homedir/.sgc.d/*/.gpg-agent.*
 homedir/.sgc.d/*/.gnupg/private-keys-v1.d/*.key
 homedir/.sgc.d/*/.gnupg/*.gpg~
+
+## autogenerate entries
+homedir/.sgc.d/acheron/.gnupg/gpg.conf
+homedir/.sgc.d/acheron/.gnupg/pubring.gpg
+homedir/.sgc.d/acheron/.gnupg/secring.gpg
+homedir/.sgc.d/acheron/.gnupg/sshcontrol
+homedir/.sgc.d/acheron/.gnupg/trustdb.gpg
+homedir/.sgc.d/acheron/sgc_config
+homedir/.sgc.d/acheron/ssh_config
+homedir/.sgc.d/blackdot/id_rsa
+homedir/.sgc.d/blackdot/sgc_config
+homedir/.sgc.d/blackdot/ssh_config
