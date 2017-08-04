@@ -48,6 +48,21 @@ if [[ ! -e ".git/hooks/post-checkout" ]] then
   task_done
 fi
 
+## update repository
+task_begin "Updating master branch"
+git fetch -a && task_done || task_fail
+
+## detach from master if not the case
+if [[ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]]; then
+  task_begin "Detaching from master"
+  if git checkout --detach 2> /dev/null > /dev/null; then
+    task_done
+  else
+    task_fail
+    exit 1
+  fi
+fi
+
 ## symlink top level homedir/ to $HOME/
 for entry in $(find homedir -mindepth 1 -maxdepth 1 -type f -name '.DS_Store' -o -type f -name '._*' -prune -o -print); do
   task_begin "Installing ${${(s#/#)entry}[-1]}"

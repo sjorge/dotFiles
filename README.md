@@ -22,12 +22,12 @@ My personal dotFiles repository, somethings will be encrypted.
     - [X] aliases :: autoloading of aliases
     - [X] options :: auto set/unset of zsh options
     - [X] themes  :: zsh themes
-  - [ ] SSH Gateway Command (cerberos replacement)
+  - [X] SSH Gateway Command (cerberos replacement)
     - [X] basic support for seperate SSH environments
     - [X] shared environments
     - [X] none-agent environment
     - [X] ssh-agent environment
-    - [ ] gpg-agent environment
+    - [X] gpg-agent environment
 - [ ] .vimrc
   - [X] cleanup
   - [ ] add plugins
