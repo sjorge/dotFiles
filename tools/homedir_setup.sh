@@ -34,12 +34,14 @@ cd "${TOPDIR}" || log_hard_error "Failed to change into ${TOPDIR}!"
 ## install git hooks
 if [[ ! -e ".git/hooks/pre-commit" ]] then
   task_begin "Installing git pre-commit hook"
+  [[ -L ".git/hooks/pre-commit" ]] && rm ".git/hooks/pre-commit"
   ln -s "${TOPDIR}/tools/.git-pre-commit" ".git/hooks/pre-commit" \
     && task_done \
     || (task_fail; log_hard_error "Failed to install git pre-commit hook")
 fi
 if [[ ! -e ".git/hooks/post-checkout" ]] then
   task_begin "Installing git post-checkout hook"
+  [[ -L ".git/hooks/post-checkout" ]] && rm ".git/hooks/post-checkout"
   ln -s "${TOPDIR}/tools/.git-post-checkout" ".git/hooks/post-checkout" \
     && task_done \
     || (task_fail; log_hard_error "Failed to install git post-checkout hook")
