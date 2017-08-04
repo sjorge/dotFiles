@@ -172,19 +172,13 @@ _sgc_command() {  # wraps commands in proper flags and environment
   local cmd_args=(${@})
   local cmd_eval=()
 
+  ## NOTE: inject only what is needed as efficiently as possible
   case ${mode} in
-    env)  # NOTE: inject environment only (e.g. ssh-add)
-      cmd_eval+=(env $(_sgc_setup_env) ${cmd} ${cmd_args[@]})
-    ;;
-    ssh)  # NOTE: inject environment and ssh compatible (e.g. ssh and scp)
-      cmd_eval+=(env $(_sgc_setup_env)${cmd}$(_sgc_setup_ssh) ${cmd_args[@]})
-    ;;
-    gpg)  # NOTE: inject environment and gpg compatible (e.g. gpg and gpg-agent-connect)
-      cmd_eval+=(env $(_sgc_setup_env)${cmd}$(_sgc_setup_gpg) ${cmd_args[@]})
-    ;;
-    rsync) # NOTE: inject environment and rsync compatible (e.g. rsync)
-      cmd_eval+=(env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_ssh)' ${cmd_args[@]})
-    ;;
+    env|ssh|gpg|rsync) cmd_eval+=(env $(_sgc_setup_env) ${cmd}) ;|
+    ssh)               cmd_eval+=($(_sgc_setup_ssh))            ;|
+    gpg)               cmd_eval+=($(_sgc_setup_gpg))            ;|
+    rsync)             cmd_eval+=(-e 'ssh $(_sgc_setup_ssh)')   ;|
+    env|ssh|gpg|rsync) cmd_eval+=(${cmd_args[@]})               ;;
   esac
 
   if [[ "${#cmd_eval}" -gt 0 ]]; then
