@@ -26,6 +26,7 @@ PERM["homedir/.zshrc.d/cmdlets/clippaste"]=100600
 PERM["homedir/.zshrc.d/cmdlets/man"]=100600
 PERM["homedir/.zshrc.d/cmdlets/os:darwin:pkgsrc-audit"]=100600
 PERM["homedir/.zshrc.d/cmdlets/os:darwin:vnc"]=100600
+PERM["homedir/.zshrc.d/cmdlets/rdp"]=100644
 PERM["homedir/.zshrc.d/compdef/directories"]=100600
 PERM["homedir/.zshrc.d/compdef/duplicates"]=100600
 PERM["homedir/.zshrc.d/compdef/manpages"]=100600

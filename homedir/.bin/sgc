@@ -122,6 +122,7 @@ _sgc_setup_ssh() {  # setup ssh args
   echo -n " -o UserKnownHostsFile=\"${SGC_CONFIG_DIR}/known_hosts\""
   if [[ "${skip_proxy}" == "no" ]] && [[ -n "${SGC_JUMP_PROXY}" ]]; then
     local proxy_args=()
+    proxy_args+=(-o ClearAllForwardings=yes)
     if [[ "${SGC_JUMP_PROXY}" =~ "^([a-zA-Z0-9]+)\@([a-zA-Z0-9._-]+)\:([0-9]+)$" ]]; then
       proxy_args+=(-l)
       proxy_args+=(${match[1]})
@@ -169,26 +170,27 @@ _sgc_command() {  # wraps commands in proper flags and environment
   local mode=$1; shift
   local cmd=$1; shift
   local cmd_args=(${@})
+  local cmd_eval=()
 
   case ${mode} in
     env)  # NOTE: inject environment only (e.g. ssh-add)
-      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
-      eval "env $(_sgc_setup_env)${cmd} ${cmd_args[@]}"
+      cmd_eval+=(env $(_sgc_setup_env) ${cmd} ${cmd_args[@]})
     ;;
     ssh)  # NOTE: inject environment and ssh compatible (e.g. ssh and scp)
-      _sgc_log_info "executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_ssh) ${cmd_args[@]}"
-      eval "env $(_sgc_setup_env)${cmd}$(_sgc_setup_ssh) ${cmd_args[@]}"
+      cmd_eval+=(env $(_sgc_setup_env)${cmd}$(_sgc_setup_ssh) ${cmd_args[@]})
     ;;
     gpg)  # NOTE: inject environment and gpg compatible (e.g. gpg and gpg-agent-connect)
-      _sgc_log_info "executing: env $(_sgc_setup_env)${cmd}$(_sgc_setup_gpg) ${cmd_args[@]}"
-      GPG_TTY=$(tty)
-      eval "env $(_sgc_setup_env)${cmd}$(_sgc_setup_gpg) ${cmd_args[@]}"
+      cmd_eval+=(env $(_sgc_setup_env)${cmd}$(_sgc_setup_gpg) ${cmd_args[@]})
     ;;
     rsync) # NOTE: inject environment and rsync compatible (e.g. rsync)
-      _sgc_log_info "Executing: env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_ssh)' ${cmd_args[@]}"
-      eval "env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_ssh)' ${cmd_args[@]}"
+      cmd_eval+=(env $(_sgc_setup_env)${cmd} -e 'ssh $(_sgc_setup_ssh)' ${cmd_args[@]})
     ;;
   esac
+
+  if [[ "${#cmd_eval}" -gt 0 ]]; then
+    _sgc_log_info "Executing: ${cmd_eval[@]}"
+    eval "${cmd_eval[@]}"
+  fi
 }
 _sgc_exit_error() { _sgc_config_clear ; _sgc_log_error ${@} ; exit 1 }  # exit with error
 _sgc_exit_ok()    { _sgc_config_clear ; exit 0 }                        # exit normally
