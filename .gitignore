@@ -5,3 +5,6 @@
 *.swp
 homedir/.sgc.d/*/known_hosts
 homedir/.sgc.d/*/.ssh-agent.*
+homedir/.sgc.d/*/.gpg-agent.*
+homedir/.sgc.d/*/.gnupg/private-keys-v1.d/*.key
+homedir/.sgc.d/*/.gnupg/*.gpg~
