@@ -116,9 +116,6 @@ _sgc_setup_ssh() {  # setup ssh args
   local skip_proxy=${(L)1:-no}
   [[ "${SGC_CONFIG_DIR}/" == "${HOME}/" ]] && return 0
 
-  if [[ -r "${SGC_CONFIG_DIR}/ssh_config" ]]; then
-    echo -n " -F \"${SGC_CONFIG_DIR}/ssh_config\"" 
-  fi
   echo -n " -o UserKnownHostsFile=\"${SGC_CONFIG_DIR}/known_hosts\""
   if [[ "${skip_proxy}" == "no" ]] && [[ -n "${SGC_JUMP_PROXY}" ]]; then
     local proxy_args=()
@@ -149,6 +146,9 @@ _sgc_setup_ssh() {  # setup ssh args
       proxy_args+=(${SGC_JUMP_PROXY})
     fi
     echo -n " -o ProxyCommand=\"ssh$(_sgc_setup_ssh yes) ${proxy_args[@]} 2> /dev/null\""
+  fi
+  if [[ -r "${SGC_CONFIG_DIR}/ssh_config" ]]; then
+    echo -n " -F \"${SGC_CONFIG_DIR}/ssh_config\""
   fi
 }
 _sgc_setup_gpg() {  # setup gpg args
