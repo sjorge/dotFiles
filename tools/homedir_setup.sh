@@ -94,7 +94,14 @@ done
 if [[ ! -r "${HOME}/.dotFiles.key" ]]; then
   log_warning "Decryption skipped, missing ~/.dotFiles.key!"
 else
-  echo -n
+  if ! which -ps openssl 2> /dev/null > /dev/null; then
+    log_warning "Decryption skipped, could not locate openssl!"
+  else
+    for entry in $(find "${TOPDIR}" -type f -name "*.enc" -print); do
+      task_begin "Decrypting ${entry[(${#TOPDIR}+2),-1]}"
+      openssl enc -kfile "${HOME}/.dotFiles.key" -d -a -aes-256-cbc -in "${entry}" -out "${entry[1,-5]}" && task_done || task_fail
+    done
+  fi
 fi
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2

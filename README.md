@@ -11,8 +11,7 @@ My personal dotFiles repository, somethings will be encrypted.
   - [X] pkgsrc_setup_preferences.sh
   - [X] homedir_setup.sh
   - [X] homedir_setup.sh file removal support
-  - [ ] homedir_setup.sh file encryption support
-  - [ ] git hooks auto add .gitignore for enc file parent
+  - [X] homedir_setup.sh file encryption support
 - [ ] .zshrc
   - [X] cleanup
   - [X] tab completion
