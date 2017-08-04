@@ -50,7 +50,7 @@ fi
 
 ## update repository
 task_begin "Updating master branch"
-git fetch -a && task_done || task_fail
+git fetch -a 2> /dev/null > /dev/null && task_done || task_fail
 
 ## detach from master if not the case
 if [[ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]]; then
@@ -62,6 +62,14 @@ if [[ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]]; then
     exit 1
   fi
 fi
+
+## merging master
+task_begin "Merging changes from master"
+if ! git merge --strategy-option=theirs master; then
+  task_fail
+  log_hard_error "Failed to merge master into detached branch! Please resolve the issue first."
+fi
+task_done
 
 ## symlink top level homedir/ to $HOME/
 for entry in $(find homedir -mindepth 1 -maxdepth 1 -type f -name '.DS_Store' -o -type f -name '._*' -prune -o -print); do
@@ -76,5 +84,12 @@ for entry in $(find homedir -mindepth 1 -maxdepth 1 -type f -name '.DS_Store' -o
     fi
   ln -s "${source_path}" "${target_path}" && task_done || task_fail
 done
+
+## decrypt
+if [[ ! -r "${HOME}/.dotFiles.key" ]]; then
+  log_warning "Decryption skipped, missing ~/.dotFiles.key!"
+else
+  echo -n
+fi
 
 # vim: tabstop=2 expandtab shiftwidth=2 softtabstop=2
