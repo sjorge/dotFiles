@@ -54,7 +54,7 @@ git fetch -a 2> /dev/null > /dev/null && task_done || task_fail
 
 ## detach from master if not the case
 branch_name="${${(s#.#)$(hostname)}[1]}-${USER}"
-if [[ "$(git rev-parse --abbrev-ref HEAD)" == "${branch_name}" ]]; then
+if [[ "$(git rev-parse --abbrev-ref HEAD)" != "${branch_name}" ]]; then
   task_begin "Creating branch ${branch_name}"
   if git checkout ${branch_name} 2> /dev/null > /dev/null; then
     task_done
