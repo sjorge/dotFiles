@@ -70,7 +70,7 @@ fi
 
 ## merging master
 task_begin "Merging changes from master"
-if ! git merge --strategy-option=theirs master 2> /dev/null > /dev/null; then
+if ! git merge --strategy-option=theirs origin/master 2> /dev/null > /dev/null; then
   task_fail
   log_hard_error "Failed to merge master into detached branch! Please resolve the issue first."
 fi
