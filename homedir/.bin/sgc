@@ -155,17 +155,14 @@ _sgc_setup_ssh() {  # setup ssh args
 _sgc_setup_gpg() {  # setup gpg args
   echo -n " --homedir \"${SGC_CONFIG_DIR}/.gnupg/\""
 }
-_sgc_command_ssh_agent() {  # wraps ssh-agent command
-  if [[ "${2:-}" != "-k" ]]; then
-    _sgc_log_warning "Running ssh-agent using the SGC wrapper is only allowed with the '-k' argument!"
-    return 1
-  fi
-
+_sgc_command_kill_agent() {  # kill agents
   local pids=($(ps -a -U ${USER} -o pid))
-  [[ -r "${SGC_CONFIG_DIR}/.ssh-agent.env" ]] && source "${SGC_CONFIG_DIR}/.ssh-agent.env" 2> /dev/null > /dev/null
-  if (( ${pids[(I)${SSH_AGENT_PID:-}]} )); then
-    _sgc_command env ssh-agent -k 2> /dev/null > /dev/null
-  fi
+  for agent_env in .ssh-agent.env .gpg-agent.env; do
+    [[ -r "${SGC_CONFIG_DIR}/${agent_env}" ]] && source "${SGC_CONFIG_DIR}/${agent_env}" 2> /dev/null > /dev/null
+    if (( ${pids[(I)${SSH_AGENT_PID:-}]} )); then
+      [[ -n "${SSH_AGENT_PID:-}" ]] && kill ${SSH_AGENT_PID}
+    fi
+  done
 }
 _sgc_command() {  # wraps commands in proper flags and environment
   local mode=$1; shift
@@ -196,13 +193,13 @@ _sgc_check_verbose ${@}
 _sgc_config_verify || _sgc_exit_error "Configuration is not or invalid complete!"
 _sgc_log_info "SSH Gate Command (profile=${SGC_NAME})"
 case ${(L)1:-} in
-  scp)               _sgc_command ssh ${@}       ;;
-  ssh)               _sgc_command ssh ${@}       ;;
-  ssh-add)           _sgc_command env ${@}       ;;
-  ssh-agent)         _sgc_command_ssh_agent ${@} ;;
-  gpg|gpg2)          _sgc_command gpg ${@}       ;;
-  gpg-connect-agent) _sgc_command gpg ${@}       ;;
-  rsync)             _sgc_command rsync ${@}     ;;
+  scp)               _sgc_command ssh ${@}        ;;
+  ssh)               _sgc_command ssh ${@}        ;;
+  ssh-add)           _sgc_command env ${@}        ;;
+  kill-agent)        _sgc_command_kill_agent ${@} ;;
+  gpg|gpg2)          _sgc_command gpg ${@}        ;;
+  gpg-connect-agent) _sgc_command gpg ${@}        ;;
+  rsync)             _sgc_command rsync ${@}      ;;
   *)
     if [[ ${#@} -gt 0 ]]; then
       _sgc_log_error "No handler known for the command \"${1:-}\"!"
