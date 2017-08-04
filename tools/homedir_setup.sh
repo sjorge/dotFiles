@@ -53,19 +53,24 @@ task_begin "Updating master branch"
 git fetch -a 2> /dev/null > /dev/null && task_done || task_fail
 
 ## detach from master if not the case
-if [[ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]]; then
-  task_begin "Detaching from master"
-  if git checkout --detach 2> /dev/null > /dev/null; then
+branch_name="${${(s#.#)$(hostname)}[1]}-${USER}"
+if [[ "$(git rev-parse --abbrev-ref HEAD)" == "${branch_name}" ]]; then
+  task_begin "Creating branch ${branch_name}"
+  if git checkout ${branch_name} 2> /dev/null > /dev/null; then
     task_done
   else
-    task_fail
-    exit 1
+    if git checkout -b ${branch_name} 2> /dev/null > /dev/null; then
+      task_done
+    else
+      task_fail
+      exit 1
+    fi
   fi
 fi
 
 ## merging master
 task_begin "Merging changes from master"
-if ! git merge --strategy-option=theirs master; then
+if ! git merge --strategy-option=theirs master 2> /dev/null > /dev/null; then
   task_fail
   log_hard_error "Failed to merge master into detached branch! Please resolve the issue first."
 fi
