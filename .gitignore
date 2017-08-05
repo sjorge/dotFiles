@@ -20,3 +20,4 @@ homedir/.sgc.d/acheron/ssh_config
 homedir/.sgc.d/blackdot/id_rsa
 homedir/.sgc.d/blackdot/sgc_config
 homedir/.sgc.d/blackdot/ssh_config
+homedir/.sgc.d/acheron/id_ed25519
