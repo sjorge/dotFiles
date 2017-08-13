@@ -79,5 +79,5 @@ PERM["tools/.git-pre-commit"]=100700
 PERM["tools/git_setup_hook.sh"]=100700
 PERM["tools/gpg_setup.sh"]=100700
 PERM["tools/homedir_enc_file.sh"]=100700
-PERM["tools/homedir_setup.sh"]=100700
+PERM["tools/homedir_setup.sh"]=100755
 PERM["tools/pkgsrc_setup_preferences.sh"]=100700
