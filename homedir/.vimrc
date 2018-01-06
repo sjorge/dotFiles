@@ -18,5 +18,6 @@ set expandtab                     " expand tabs to spaces
 set shiftwidth=4                  " set index to 4 spaces
 set softtabstop=4                 " tab inserts 4 spaces
 set autoindent                    " auto indent
+set paste                         " easier pasting with indents
 
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
