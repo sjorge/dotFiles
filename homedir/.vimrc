@@ -21,3 +21,19 @@ set autoindent                    " auto indent
 set paste                         " easier pasting with indents
 
 autocmd FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
+
+" keep cursor position
+augroup LastPosition
+    autocmd! BufReadPost *
+        \ if line("'\"") > 0 && line("'\"") <= line("$") |
+        \     exe "normal! g`\"" |
+        \ endif
+augroup END
+
+" multi session undo
+if has('persistent_undo') && exists("&undodir")
+    set undodir=$HOME/.config/vim/undo//    " Location of undofiles
+    set undofile                            " Enable undofile
+    set undolevels=500                      " Max undos stored
+    set undoreload=10000                    " Buffer stored undos
+endif
