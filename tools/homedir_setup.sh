@@ -45,14 +45,13 @@ if [[ ! -e ".git/hooks/post-checkout" ]] then
   ln -s "${TOPDIR}/tools/.git-post-checkout" ".git/hooks/post-checkout" \
     && task_done \
     || (task_fail; log_hard_error "Failed to install git post-checkout hook")
-  task_begin "Restoring permissions"
-  tools/.git-post-checkout 2> /dev/null > /dev/null
-  task_done
 fi
 
 ## update repository
 task_begin "Updating master branch"
 git fetch -a 2> /dev/null > /dev/null && task_done || task_fail
+task_begin "Restore permissions"
+${TOPDIR}/tools/.git-post-checkout 2> /dev/null > /dev/null && task_done || task_fail
 
 ## detach from master if not the case
 branch_name="$(hostname -s)-${USER}"
