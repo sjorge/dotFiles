@@ -6,6 +6,7 @@ PERM["homedir/.ssh/config.enc"]=100600
 PERM["homedir/.ssh/config.example"]=100600
 PERM["homedir/.ssh/id_ed25519_acheron_be.enc"]=100600
 PERM["homedir/.ssh/id_ed25519_acheron_be.pub.enc"]=100600
+PERM["homedir/.ssh/id_rsa_blackdot_be.enc"]=100600
 PERM["homedir/.ssh/id_rsa_blackdot_be.pub.enc"]=100600
 PERM["homedir/.ssh/ssh-init"]=100700
 PERM["homedir/.vimrc"]=100644
