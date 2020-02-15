@@ -101,7 +101,7 @@ else
     for entry in $(find "${TOPDIR}" -type f -name "*.enc" -print); do
       task_begin "Decrypting ${entry[(${#TOPDIR}+2),-1]}"
       if cp -p "${entry}" "${entry[1,-5]}" 2> /dev/null > /dev/null; then
-        openssl enc -kfile "${HOME}/.dotFiles.key" -d -a -aes-256-cbc -in "${entry}" -out "${entry[1,-5]}" && task_done || task_fail
+        openssl enc -kfile "${HOME}/.dotFiles.key" -d -a -aes-256-cbc -md md5 -in "${entry}" -out "${entry[1,-5]}" && task_done || task_fail
       else
         task_fail
       fi

@@ -36,7 +36,7 @@ fi
 
 ## encrypt file
 task_begin "Encrypting ${1}"
-openssl enc -kfile "${HOME}/.dotFiles.key" -a -aes-256-cbc -in "${TOPDIR}/${1}" -out "${TOPDIR}/${1}.enc" && \
+openssl enc -kfile "${HOME}/.dotFiles.key" -a -aes-256-cbc -md md5 -in "${TOPDIR}/${1}" -out "${TOPDIR}/${1}.enc" && \
   task_done || \
   task_fail
 
